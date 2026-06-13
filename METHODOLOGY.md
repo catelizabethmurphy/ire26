@@ -24,12 +24,34 @@ differently, and then reconcile them.
 - `data/sample/` — a single game (Duke vs. Siena) carried from raw scraper output
   through to the cleaned, merged result, so the pipeline is concrete.
 - `data/eligibility/` — the small public tables the eligibility notebook uses.
-- `config/`, `pyproject.toml`, `.env.example` — setup.
+- `pyproject.toml` / `uv.lock`, `config/`, `.env.example` — setup and
+  dependencies, explained just below.
 
 I left the full scraped dataset out on purpose. It's large, a chunk of it came
 from a paid subscription I can't redistribute, and the harassment side of the
 project involved social‑media comments with real people's names in them. None of
 that belongs in a public demo. See the last section for more.
+
+## Setup and dependencies
+
+The Python side is managed with [uv](https://github.com/astral-sh/uv).
+`pyproject.toml` lists what the scrapers need: Selenium and webdriver‑manager for
+the browser automation, pandas for wrangling, and datasette and sqlite‑utils,
+which are in there because I'd sometimes load the CSVs into a small SQLite
+database to poke at them. `uv.lock` pins every dependency to an exact version, so
+`uv sync` rebuilds the same environment on any machine.
+
+`config/` is older setup I kept around for reference rather than because you need
+it. `requirements.txt` is the original pip dependency list from before I moved to
+uv, and `setup.sh` is the bash script I used early on to install Python,
+datasette, and sqlite‑utils by hand. Both are superseded by `uv sync`, and
+`config/README.md` says as much.
+
+`.env.example` is the credential template. Copy it to `.env` and fill in your
+RotoWire login if you want to run the subscription scraper; nothing else needs it,
+and `.env` is gitignored so it never gets committed. The `.gitignore` also keeps
+the bulk data and the comment data out of the repo, and `.gitattributes` just
+normalizes line endings.
 
 ## The scrapers
 
