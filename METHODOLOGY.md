@@ -151,13 +151,47 @@ list of which ones (`data_source`), so I can always trace a line back to where i
 came from. The cleaned result for the sample game is in
 `data/sample/cleaned_props_duke_siena.csv`.
 
+## The columns, and the ones I dropped
+
+The cleaned table is deliberately narrow. Each row carries the game context
+(tournament, round, the `game` key, date, both teams and their seeds, the point
+spread, and which side was favored), the player, the bet (the book as
+`prop_platform`, whether it's a sportsbook or DFS app as `prop_platform_type`,
+the market, and the line), the provenance fields (`prop_id`,
+`number_times_identified`, `data_source`, `file_date`), and `player_minutes` from
+the box score.
+
+That's a choice, and it leaves a fair amount on the cutting room floor. The
+sources carried more than I kept, and it's worth knowing it exists:
+
+- **The odds on each prop.** DraftKings and BettingPros gave me the price (the
+  juice, like ‑115) next to each line, but I only kept the line itself. So I have
+  the number a book set without how it was priced.
+- **The game total.** I kept each game's point spread but dropped the over/under
+  on the game itself, which ESPN had right there.
+- **The full box‑score stat line** (see below) — I carried only minutes.
+- **Player position**, which BettingPros and the RotoWire feed both had.
+- **An "average line variance" figure** from the paid RotoWire feed, which is its
+  own measure of how much books disagreed on a line, plus the whole line‑movement
+  history that feed carries (opening line, previous line, the size of each move).
+- **Internal IDs and profile URLs** (ESPN game IDs, player IDs, roster bio links)
+  that were only ever plumbing.
+
 ## Box scores
 
-The box score scraper gives me each player's real minutes and stats. Joined onto
-the props table, that's what lets me ask whether a player went over or under, and
-whether a line was set anywhere near reality. The sample includes
-`player_minutes`, which on its own already flags props posted on players who
-barely got off the bench.
+`march_madness_box_scores_scraper.py` is the one collector that isn't a browser
+scrape. It calls ESPN's public game‑summary API by game ID and pulls the full box
+score for each tournament game: every player's minutes, points, rebounds
+(offensive and defensive), assists, steals, blocks, turnovers, fouls, and full
+shooting splits (field goals, threes, and free throws made and attempted), plus
+jersey number.
+
+Here's an honest gap. When I merged the box scores into the props table I only
+carried `player_minutes` through. Minutes alone is already useful — it flags
+props posted on players who barely got off the bench — but the rest of the stat
+line is sitting right there in the scraped data. That's exactly what you'd join
+in to grade every prop against what the player actually did, over or under. It's
+the first thing in the "what I'd do differently" section at the end.
 
 ## The eligibility analysis
 
@@ -236,3 +270,27 @@ Treat the counts as a minimum, not a complete tally.
 One real caveat: matching on names is imperfect. Common names can collide, which
 is why I lean on the rosters to disambiguate, but it still needs spot‑checking.
 And before you scrape any of these sites yourself, read their terms of service.
+
+## What I'd do differently next time
+
+A few things I'd change if I ran this again:
+
+- **Join the whole box‑score line, not just minutes.** I scraped every player's
+  full stat line and then only used minutes. Pulling points, rebounds, assists,
+  and the rest into the table would let me grade every prop against the real
+  result automatically, which is the obvious next step and the one I most regret
+  leaving undone.
+- **Keep the odds, not just the line.** Capturing the price on each prop would let
+  me see how a book juiced a given over/under, not only where it set the number.
+- **Scrape more often and closer to tip‑off.** Props get pulled when a game
+  starts, and my fixed schedule left gaps. Tightening the cadence near tip, or
+  triggering off the schedule instead of a fixed clock, would catch more lines
+  before they vanish.
+- **Go after the DFS apps directly.** Reaching some books only through an
+  aggregator capped me at points and rebounds and meant apps like Fliff were badly
+  undercounted. Scraping those apps on their own would close most of the coverage
+  gap.
+- **Keep the game total** alongside the spread, since ESPN already had it.
+- **Lean less on names for identity.** Where the sources expose stable player IDs,
+  using those instead of name matching would cut down on collisions between
+  players with common names.
