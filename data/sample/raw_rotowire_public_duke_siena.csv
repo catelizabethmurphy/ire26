@@ -1,0 +1,12 @@
+scrape_date,scrape_time,stat_type,player_name,first_name,last_name,team,opponent,game_id,player_id,draftkings_line,fanduel_line,mgm_line,betrivers_line,caesars_line,hardrock_line,thescore_line
+2026-03-19,17:38:15,points,Cameron Boozer,Cameron,Boozer,Duke,Siena,2973325,26147,27.5,23.5,29.5,24.5,23.5,,24.5
+2026-03-19,17:38:15,points,Gavin Doty,Gavin,Doty,Siena,@Duke,2973325,24619,23.5,15.5,24.5,15.5,15.5,,14.5
+2026-03-19,17:38:15,points,Isaiah Evans,Isaiah,Evans,Duke,Siena,2973325,23548,15.5,14.5,19.5,15.5,14.5,,14.5
+2026-03-19,17:38:15,points,Justice Shoats,Justice,Shoats,Siena,@Duke,2973325,23899,10.5,10.5,9.5,10.5,10.5,,
+2026-03-19,17:38:15,points,Cayden Boozer,Cayden,Boozer,Duke,Siena,2973325,26051,9.5,9.5,9.5,,9.5,,9.5
+2026-03-19,17:38:15,points,Francis Folefac,Francis,Folefac,Siena,@Duke,2973325,27377,9.5,8.5,9.5,9.5,9.5,,
+2026-03-19,17:38:15,points,Dame Sarr,Dame,Sarr,Duke,Siena,2973325,25965,9.5,8.5,,,8.5,,9.5
+2026-03-19,17:38:15,rebounds,Cameron Boozer,Cameron,Boozer,Duke,Siena,2973325,26147,11.5,10.5,9.5,11.5,10.5,,9.5
+2026-03-19,17:38:15,rebounds,Dame Sarr,Dame,Sarr,Duke,Siena,2973325,25965,4.5,4.5,,,4.5,,5.5
+2026-03-19,17:38:15,assists,Cameron Boozer,Cameron,Boozer,Duke,Siena,2973325,26147,5.5,5.5,4.5,5.5,5.5,,5.5
+2026-03-19,17:38:15,pts_reb_ast,Cameron Boozer,Cameron,Boozer,Duke,Siena,2973325,26147,39.5,,,40.5,,,

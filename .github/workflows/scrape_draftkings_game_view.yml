@@ -1,0 +1,78 @@
+name: DraftKings Game View Scraper
+
+on:
+  schedule:
+    # Run at 6am, 9am, 12pm, 1pm, 2pm, 3pm, 4pm, 5pm, 6pm, 7pm, 8pm, 9pm EST
+    # Cron times are in UTC, so EST is UTC-5 (add 5 hours)
+    - cron: '0 11 * * *'  # 6am EST = 11am UTC
+    - cron: '0 14 * * *'  # 9am EST = 2pm UTC
+    - cron: '0 17 * * *'  # 12pm EST = 5pm UTC
+    - cron: '0 18 * * *'  # 1pm EST = 6pm UTC
+    - cron: '0 19 * * *'  # 2pm EST = 7pm UTC
+    - cron: '0 20 * * *'  # 3pm EST = 8pm UTC
+    - cron: '0 21 * * *'  # 4pm EST = 9pm UTC
+    - cron: '0 22 * * *'  # 5pm EST = 10pm UTC
+    - cron: '0 23 * * *'  # 6pm EST = 11pm UTC
+    - cron: '0 0 * * *'   # 7pm EST = 12am UTC (next day)
+    - cron: '0 1 * * *'   # 8pm EST = 1am UTC (next day)
+    - cron: '0 2 * * *'   # 9pm EST = 2am UTC (next day)
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  scrape-draftkings-game-view:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+        
+    - name: Install Chrome
+      run: |
+        wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+        sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
+        
+    - name: Install dependencies
+      run: |
+        pip install -r config/requirements.txt
+        
+    - name: Create logs directory
+      run: mkdir -p logs
+        
+    - name: Run DraftKings game view scraper
+      run: |
+        python scrapers/draftkings_props_by_game_scraper.py
+        
+    - name: Commit and push data
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add data/draftkings_props/
+        
+        # Check if there are changes to commit
+        if ! git diff --quiet || ! git diff --staged --quiet; then
+          git commit -m "Update DraftKings game view props data - $(date +'%Y-%m-%d %H:%M:%S')"
+          
+          # Pull with rebase to handle concurrent workflow runs
+          git pull --rebase origin main || {
+            echo "Rebase failed, trying regular pull..."
+            git rebase --abort 2>/dev/null || true
+            git pull origin main || {
+              echo "Pull failed, trying to force push..."
+              git push --force-with-lease
+              exit $?
+            }
+          }
+          
+          # Push changes
+          git push
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,63 @@
+name: Rotowire Public Props Data Scraper
+
+on:
+  schedule:
+    # Run 5 times daily at 9am, 12pm, 3pm, 6pm, 9pm ET
+    - cron: '0 13 * * *'  # 9am ET (13:00 UTC)
+    - cron: '0 16 * * *'  # 12pm ET (16:00 UTC)
+    - cron: '0 19 * * *'  # 3pm ET (19:00 UTC)
+    - cron: '0 22 * * *'  # 6pm ET (22:00 UTC)
+    - cron: '0 1 * * *'   # 9pm ET (01:00 UTC next day)
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  scrape-rotowire:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+        
+    - name: Install dependencies
+      run: |
+        pip install -r config/requirements.txt
+        
+    - name: Create logs directory
+      run: mkdir -p logs
+        
+    - name: Run RotoWire props scraper
+      run: |
+        python scrapers/rotowire_public_data_scraper.py
+        
+    - name: Commit and push data
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add data/rotowire_props/
+        
+        # Check if there are changes to commit
+        if ! git diff --quiet || ! git diff --staged --quiet; then
+          git commit -m "Update RotoWire props data - $(date +'%Y-%m-%d %H:%M:%S')"
+          
+          # Pull with rebase to handle concurrent workflow runs
+          git pull --rebase origin main || {
+            echo "Rebase failed, trying regular pull..."
+            git rebase --abort 2>/dev/null || true
+            git pull origin main || {
+              echo "Pull failed, trying to force push..."
+              git push --force-with-lease
+              exit $?
+            }
+          }
+          
+          # Push changes
+          git push
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,52 @@
+# ─── Data ────────────────────────────────────────────────────────────────
+# This is a methodology-showcase repo. We deliberately ship ONLY a small,
+# public sample (data/sample/) and the public eligibility tables
+# (data/eligibility/). Everything else under data/ is ignored so the full
+# scraped corpus, the paywalled RotoWire subscription feed, and the social
+# media comment data (which contains personal information) never get committed.
+data/*
+!data/sample/
+!data/eligibility/
+
+# Never commit raw social-media comments (contains PII)
+**/comments/
+**/raw_comments/
+
+# Archived / bulk data
+archived_data/
+
+# Rendered R notebooks (can embed full data dumps; render locally instead)
+*.nb.html
+
+# ─── Secrets ─────────────────────────────────────────────────────────────
+.env
+.env.local
+
+# ─── Python ──────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+ENV/
+env/
+*.egg-info/
+build/
+dist/
+
+# ─── Logs / debug ────────────────────────────────────────────────────────
+logs/
+*.log
+debug_*.html
+debug_*.py
+**/page_source_*.html
+temp_downloads/
+
+# ─── IDE / OS ────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db

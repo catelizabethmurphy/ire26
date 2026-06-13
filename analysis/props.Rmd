@@ -1,0 +1,788 @@
+---
+title: "March Madness 2026: Prop Betting Analysis"
+output: html_notebook
+author: "Cat Murphy"
+---
+## Packages
+```{r packages}
+library(dplyr)
+library(janitor)
+library(tidyverse)
+library(lubridate)
+library(rvest)
+library(stringr)
+library(stringi)
+library(readr)
+library(purrr)
+library(fs)
+library(hms)
+```
+
+## Standardization Functions
+### Standardize team names
+```{r standardize_team_names}
+# function to standardize team names in rotowire props and espn schedules
+standardize_team_names <- function(team_name) {
+  team_name <- str_remove_all(team_name, "@")
+  team_name <- str_replace_all(team_name, "North Carolina State", "NC State")
+  team_name <- str_replace_all(team_name, "UNCW", "UNC Wilmington")
+  team_name <- str_replace_all(team_name, "St\\. Thomas \\(MN\\)", "St\\. Thomas-Minnesota")
+  team_name <- str_replace_all(team_name, "Seattle", "Seattle U")
+  team_name <- str_replace_all(team_name, "LIU", "Long Island University")
+  team_name <- str_replace_all(team_name, "McNeese State", "McNeese")
+  team_name <- str_replace_all(team_name, "\\bUNI\\b", "Northern Iowa")
+  team_name <- str_replace_all(team_name, "Miami \\(FL\\)", "Miami")
+  team_name <- str_replace_all(team_name, "Miami OH", "Miami \\(OH\\)")
+  team_name <- str_replace_all(team_name, "\\bPenn\\b", "Pennsylvania")
+  team_name <- str_replace_all(team_name, "Hawaii", "Hawai'i")
+  team_name <- str_replace_all(team_name, "Prairie View$", "Prairie View A&M")
+  team_name <- str_replace_all(team_name, "Queens NC", "Queens University")
+  team_name <- str_replace_all(team_name, "Brigham Young", "BYU")
+  team_name <- str_replace_all(team_name, "Saint Mary's \\(CA\\)", "Saint Mary's")
+  team_name <- str_replace_all(team_name, "St\\. Mary's \\(CAL\\)", "Saint Mary's")
+  team_name <- str_replace_all(team_name, "Saint Marys", "Saint Mary's")
+  team_name <- str_replace_all(team_name, "Miami Ohio", "Miami \\(OH\\)")
+  team_name <- str_replace_all(team_name, "Tennessee St\\.", "Tennessee State")
+  team_name <- str_replace_all(team_name, "Wright St\\.", "Wright State")
+  team_name <- str_replace_all(team_name, "Maryland-Baltimore County", "UMBC")
+  team_name <- str_replace_all(team_name, "Connecticut", "UConn")
+  team_name <- str_replace_all(team_name, "Long Island University-Brooklyn", "Long Island University")
+  team_name <- str_replace_all(team_name, "Long Island$", "Long Island University")
+  team_name <- str_replace_all(team_name, "Southern Methodist", "SMU")
+  team_name <- str_replace_all(team_name, "Miami FL", "Miami")
+  team_name <- str_replace_all(team_name, "Texas Christian", "TCU")
+  team_name <- str_replace_all(team_name, "St. Johns", "St. John's")
+  team_name <- str_replace_all(team_name, "Utah St\\.", "Utah State")
+  team_name <- str_replace_all(team_name, "Central Florida", "UCF")
+  team_name <- str_replace_all(team_name, "Virginia Commonwealth", "VCU")
+  team_name <- str_replace_all(team_name, "Queens \\(NY\\)", "Queens University")
+  return(team_name)
+}
+```
+
+### Standardize team abbreviations
+```{r standardize_team_abbreviations}
+# function to standardize team abbreviations in espn spreads
+match_school_abbreviations <- function(abbreviation) {
+  case_when(
+    abbreviation == "ALA" ~ "Alabama",
+    abbreviation == "AKR" ~ "Akron",
+    abbreviation == "ARIZ" ~ "Arizona",
+    abbreviation == "ARK" ~ "Arkansas",
+    abbreviation == "AUB" ~ "Auburn",
+    abbreviation == "BRAD" ~ "Bradley",
+    abbreviation == "BYU" ~ "BYU",
+    abbreviation == "CAL" ~ "California",
+    abbreviation == "CBU" ~ "California Baptist",
+    abbreviation == "CLEM" ~ "Clemson",
+    abbreviation == "CONN" ~ "UConn",
+    abbreviation == "CSU" ~ "Colorado State",
+    abbreviation == "DAY" ~ "Dayton",
+    abbreviation == "DAV" ~ "Davidson",
+    abbreviation == "DUKE" ~ "Duke",
+    abbreviation == "FLA" ~ "Florida",
+    abbreviation == "FUR" ~ "Furman",
+    abbreviation == "GMU" ~ "George Mason",
+    abbreviation == "GONZ" ~ "Gonzaga",
+    abbreviation == "GW" ~ "George Washington",
+    abbreviation == "HAW" ~ "Hawai'i",
+    abbreviation == "HOF" ~ "Hofstra",
+    abbreviation == "HOU" ~ "Houston",
+    abbreviation == "HOW" ~ "Howard",
+    abbreviation == "HP" ~ "High Point",
+    abbreviation == "ILL" ~ "Illinois",
+    abbreviation == "ILST" ~ "Illinois State",
+    abbreviation == "IOWA" ~ "Iowa",
+    abbreviation == "IDHO" ~ "Idaho",
+    abbreviation == "ISU" ~ "Iowa State",
+    abbreviation == "JOES" ~ "Saint Joseph's",
+    abbreviation == "KENN" ~ "Kennesaw State",
+    abbreviation == "KENT" ~ "Kent State",
+    abbreviation == "KU" ~ "Kansas",
+    abbreviation == "LEH" ~ "Lehigh",
+    abbreviation == "LIB" ~ "Liberty",
+    abbreviation == "LIU" ~ "Long Island University",
+    abbreviation == "LOU" ~ "Louisville",
+    abbreviation == "MCNS" ~ "McNeese",
+    abbreviation == "MIA" ~ "Miami",
+    abbreviation == "MICH" ~ "Michigan",
+    abbreviation == "MIZZ" ~ "Missouri",
+    abbreviation == "M-OH" ~ "Miami (OH)",
+    abbreviation == "MSU" ~ "Michigan State",
+    abbreviation == "MURR" ~ "Murray State",
+    abbreviation == "NAVY" ~ "Navy",
+    abbreviation == "NCST" ~ "NC State",
+    abbreviation == "NDSU" ~ "North Dakota State",
+    abbreviation == "NEB" ~ "Nebraska",
+    abbreviation == "NEV" ~ "Nevada",
+    abbreviation == "OKST" ~ "Oklahoma State",
+    abbreviation == "OSU" ~ "Ohio State",
+    abbreviation == "PENN" ~ "Pennsylvania",
+    abbreviation == "PUR" ~ "Purdue",
+    abbreviation == "PV" ~ "Prairie View A&M",
+    abbreviation == "QUC" ~ "Queens University",
+    abbreviation == "SCU" ~ "Santa Clara",
+    abbreviation == "SEA" ~ "Seattle U",
+    abbreviation == "SFA" ~ "Stephen F. Austin",
+    abbreviation == "SHSU" ~ "Sam Houston",
+    abbreviation == "SIE" ~ "Siena",
+    abbreviation == "SJU" ~ "St. John's",
+    abbreviation == "SLU" ~ "Saint Louis",
+    abbreviation == "SMC" ~ "Saint Mary's",
+    abbreviation == "SMU" ~ "SMU",
+    abbreviation == "TCU" ~ "TCU",
+    abbreviation == "TENN" ~ "Tennessee",
+    abbreviation == "TEX" ~ "Texas",
+    abbreviation == "TLSA" ~ "Tulsa",
+    abbreviation == "TNST" ~ "Tennessee State",
+    abbreviation == "TROY" ~ "Troy",
+    abbreviation == "TTU" ~ "Texas Tech",
+    abbreviation == "TXAM" ~ "Texas A&M",
+    abbreviation == "UCF" ~ "UCF",
+    abbreviation == "UCI" ~ "UC Irvine",
+    abbreviation == "UCLA" ~ "UCLA",
+    abbreviation == "UGA" ~ "Georgia",
+    abbreviation == "UIC" ~ "UIC",
+    abbreviation == "UK" ~ "Kentucky",
+    abbreviation == "UMBC" ~ "UMBC",
+    abbreviation == "UNC" ~ "North Carolina",
+    abbreviation == "UNCW" ~ "UNC Wilmington",
+    abbreviation == "UNI" ~ "Northern Iowa",
+    abbreviation == "UNLV" ~ "UNLV",
+    abbreviation == "UNM" ~ "New Mexico",
+    abbreviation == "USA" ~ "South Alabama",
+    abbreviation == "USF" ~ "South Florida",
+    abbreviation == "UST" ~ "St. Thomas-Minnesota",
+    abbreviation == "USU" ~ "Utah State",
+    abbreviation == "UVA" ~ "Virginia",
+    abbreviation == "UVU" ~ "Utah Valley",
+    abbreviation == "VAN" ~ "Vanderbilt",
+    abbreviation == "VCU" ~ "VCU",
+    abbreviation == "VILL" ~ "Villanova",
+    abbreviation == "WAKE" ~ "Wake Forest",
+    abbreviation == "WICH" ~ "Wichita State",
+    abbreviation == "WIS" ~ "Wisconsin",
+    abbreviation == "WRST" ~ "Wright State",
+    abbreviation == "WYO" ~ "Wyoming",
+    abbreviation == "YALE" ~ "Yale")
+}
+```
+
+### Standardize player names
+```{r standardize_player_names}
+standardize_player_names <- function(player_name) {
+  player_name <- str_remove_all(player_name, ",? Jr\\.?")
+  player_name <- str_remove_all(player_name, " II(I?)")
+  player_name <- str_remove_all(player_name, "\\.")
+  player_name <- stri_trans_general(player_name, "Latin-ASCII")
+  player_name <- str_remove_all(player_name, "\".*?\"")
+  player_name <- str_replace_all(player_name, "De Ridder", "De_Ridder")
+  player_name <- str_replace_all(player_name, "Aleksandar Gavalyugov", "Sash Gavalyugov")
+  player_name <- str_replace_all(player_name, "Solomon Ball", "Solo Ball")
+  player_name <- str_replace_all(player_name, "Somtochukwu", "Somto")
+  player_name <- str_replace_all(player_name, "Ben Vander Wal", "Ben VanderWal")
+  player_name <- str_replace_all(player_name, "Timotej Malovec", "Timo Malovec")
+  player_name <- str_replace_all(player_name, "Evan Williams", "Lance Williams")
+  player_name <- str_squish(player_name)
+  return(player_name)
+}
+```
+
+### Standardize unique prop ID
+```{r standardize_ids}
+standardize_id <- function(prop_id) {
+  prop_id <- str_replace_all(prop_id, "\\s+", "_")
+  prop_id <- str_remove_all(prop_id, "\\.")
+  prop_id <- str_remove_all(prop_id, "'")
+  prop_id <- str_remove_all(prop_id, "-")
+  prop_id <- str_remove_all(prop_id, ":")
+  prop_id <- str_remove_all(prop_id, "\\(")
+  prop_id <- str_remove_all(prop_id, "\\)")
+  return(prop_id)
+}
+```
+
+### Standardize prop market names
+```{r standardize_market_names}
+standardize_market_name <- function(market_name) {
+  market_name <- str_remove_all(market_name, "Over/Under")
+  market_name <- str_to_lower(market_name)
+  market_name <- str_squish(market_name)
+  market_name <- str_replace_all(market_name, "\\s?\\+\\s?", "_")
+  market_name <- str_replace_all(market_name, "pts", "points")
+  market_name <- str_replace_all(market_name, "3pt made", "three_pointers_made")
+  market_name <- str_replace_all(market_name, "reb(?![A-Za-z])", "rebounds")
+  market_name <- str_replace_all(market_name, "ast", "assists")
+  market_name <- str_replace_all(market_name, "blk", "blocks")
+  market_name <- str_replace_all(market_name, "stl", "steals")
+  market_name <- str_replace_all(market_name, "-", "_")
+  market_name <- str_replace_all(market_name, "\\s", "_")
+  return(market_name)
+}
+```
+### Classify platform types
+```{r define_platform_type}
+classify_platform_type <- function(platform_name) {
+  case_when(
+    platform_name == "betmgm" | platform_name == "thescore" | platform_name == "fanduel" | platform_name == "draftkings" | platform_name == "hardrock" | platform_name == "caesars" | platform_name == "sugarhouse" | platform_name == "betrivers" | platform_name == "partycasino" ~ "sportsbook",
+    platform_name == "sleeper" | platform_name == "prizepicks" | platform_name == "underdog" | platform_name == "pick6" | platform_name == "fliff" ~ "dfs",
+    TRUE ~ "other"
+  )
+}
+```
+### Fill in missing info
+```{r fill_in_missing_info}
+# write function to fill in missing game info  
+missing_game_info <- function(scrape_date, player_name) {
+ case_when(
+   scrape_date == "2026-03-19" & player_name == "Kennard Davis" ~ "BYU at TEX",
+   scrape_date == "2026-03-19" & player_name == "AJ Dybantsa" ~ "BYU at TEX",
+   scrape_date == "2026-03-19" & player_name == "AK Okereke" ~ "MCNS at VAN",
+   scrape_date == "2026-03-19" & player_name == "CJ Brown" ~ "USF at LOU",
+   scrape_date == "2026-03-19" & player_name == "RJ Johnson" ~ "KENN at GONZ",
+   scrape_date == "2026-03-19" & player_name == "AJ Levine" ~ "PENN at ILL",
+   scrape_date == "2026-03-19" & player_name == "TJ Power" ~ "PENN at ILL",
+   scrape_date == "2026-03-20" & player_name == "TJ Burch" ~ "WRST at UVA",
+   scrape_date == "2026-03-20" & player_name == "MJ Collins" ~ "USU at VILL",
+   scrape_date == "2026-03-21" & player_name == "AK Okereke" ~ "VAN at NEB",
+   scrape_date == "2026-03-22" & player_name == "MJ Collins" ~ "USU at ARIZ")
+}
+```
+
+## Load Data
+### Load Rosters
+```{r load_rosters}
+roster_paths <- dir_ls("../data/rosters/teams", recurse = TRUE, regexp = "\\.csv")
+  
+rosters <- roster_paths |>
+  map_dfr(read_csv, show_col_types = FALSE) |>
+  select(1:2) |>
+  rename(player_team = team) |>
+  mutate(player_name = standardize_player_names(player_name),
+         player_team = standardize_team_names(player_team))
+```
+### Load ESPN Schedules
+```{r load_espn_schedules}
+# load ESPN file paths
+schedules_paths <- dir_ls("../data/espn_schedules", recurse = TRUE, regexp = "\\.csv")
+
+# load and clean schedules
+schedules <- schedules_paths |>
+  map_dfr(read_csv, show_col_types = FALSE) |>
+  clean_names() |>
+  
+  separate(game_date, into = c("game_day", "game_date", "game_year"), sep = ", ") |>
+  
+  mutate(game_date = mdy(paste(game_date, game_year, sep = "-"))) |>
+
+  separate(venue, into = c("venue", "city", "state"), sep = ", ") |>
+  
+  mutate(game = paste(pmin(home_team, away_team), "vs.", pmax(home_team, away_team)),
+         favored_team = match_school_abbreviations(spread_team)
+         ) |>
+  
+  rename(game_points_spread = spread_line) |>
+  
+  select(game, game_date, game_time, tournament, round, region, away_team, away_team_seed, home_team, home_team_seed, venue, city, state, tv_network, game_points_spread, favored_team) |>
+  
+  distinct(game, .keep_all = TRUE)
+```
+### Load Box Score Data
+```{r}
+box_score_paths <- dir_ls("../data/box_scores", recurse = TRUE, regexp = "\\.csv")
+
+box_scores <- box_score_paths |>
+  map_dfr(read_csv, show_col_types = FALSE) |>
+  clean_names() |>
+  rename(player_team = team_location,
+         opponent_team = opponent_location) |>
+  separate(date, into = c("game_date", "game_time"), sep = " ") |>
+  mutate(game_date = as.Date(game_date),
+         player_name = standardize_player_names(player_name),
+         game = paste(pmin(player_team, opponent_team), "vs.", pmax(player_team, opponent_team)))  |>
+  select(game, game_date, player_team, opponent_team, player_name, minutes) |>
+  rename(player_minutes = minutes)
+```
+### Load Rotowire Props
+#### Load Subscription Rotowire props
+```{r subscription_rotowire_props}
+subscription_rotowire_props_paths <- dir_ls("../data/rotowire_subscription/lines", recurse = TRUE, regexp = "\\.csv")
+
+subscription_rotowire_props <-  subscription_rotowire_props_paths |>
+  map_dfr(~ read_csv(.x, show_col_types = FALSE) |> mutate(file_name = .x)) |>
+  clean_names() |>
+  distinct() |>
+  mutate(row_id = row_number(),
+         data_source = "rotowire_subscription",
+         file_date = as.Date(str_extract(file_name, "\\d{4}-\\d{2}-\\d{2}"))) |>
+  select(row_id, data_source, file_date, player, team, opponent, market_name, site, line, file_name) |>
+  rename(player_name = player,
+         player_team = team,
+         opponent_team = opponent,
+         prop_platform = site,
+         prop_market = market_name,
+         prop_line = line) |>
+  mutate(prop_platform = str_remove_all(prop_platform, "-sb"),
+         across(c(player_team, opponent_team), \(x) str_remove_all(x, "@")),
+         prop_market = standardize_market_name(prop_market),
+         prop_platform_type = classify_platform_type(prop_platform),
+         player_name = standardize_player_names(player_name),
+         player_team = standardize_team_names(player_team),
+         opponent_team = standardize_team_names(opponent_team),
+         game = paste(pmin(player_team, opponent_team), "vs.", pmax(player_team, opponent_team))) |>
+  
+  left_join(schedules, join_by(game)) |>
+  
+  filter(tournament == "NCAA Tournament") |>
+  
+  mutate(player_team_seed = case_when(
+    player_team == home_team ~ home_team_seed,
+    player_team == away_team ~ away_team_seed,
+    TRUE ~ NA
+  ),
+  opponent_team_seed = case_when(
+    opponent_team == home_team ~ home_team_seed,
+    opponent_team == away_team ~ away_team_seed,
+    TRUE ~ NA
+  ),
+  player_team_favored = case_when(
+    player_team == favored_team ~ TRUE,
+    opponent_team == favored_team ~ FALSE,
+    TRUE ~ NA
+  )) |>
+  
+  mutate(prop_id = str_squish(str_to_lower(paste(player_name, prop_platform, prop_market, "no", player_team_seed, player_team, "vs", "no", opponent_team_seed, opponent_team, game_date, sep = "_"))),
+         prop_id = standardize_id(prop_id)) |>
+
+  select(
+    row_id,
+    data_source,
+    file_name,
+    file_date,
+    tournament, 
+    round, 
+    region, 
+    game,
+    game_date,
+    player_name, 
+    player_team, 
+    player_team_seed, 
+    opponent_team, 
+    opponent_team_seed, 
+    game_points_spread, 
+    favored_team,
+    player_team_favored,
+    prop_platform, 
+    prop_platform_type,
+    prop_market, 
+    prop_line,
+    prop_id)
+```
+
+#### Load Scraped Rotowire props
+```{r scraped_rotowire_props}
+# load file paths
+scraped_rotowire_props_paths <- dir_ls("../data/rotowire_props", recurse = TRUE, regexp = "\\.csv")
+
+scraped_rotowire_props <- scraped_rotowire_props_paths |>
+  map_dfr(~ read_csv(.x, show_col_types = FALSE) |> mutate(file_name = .x)) |>
+  clean_names() |>
+  select(-scrape_date, -scrape_time) |>
+  mutate(row_id = row_number(),
+         data_source = "scraped_rotowire",
+         file_date = as.Date(str_extract(file_name, "\\d{4}-\\d{2}-\\d{2}"))) |>
+  rename(player_team = team,
+         opponent_team = opponent,
+         prop_market = stat_type,
+         betmgm_line = mgm_line) |>
+  mutate(prop_market = standardize_market_name(prop_market),
+         player_name = standardize_player_names(player_name),
+         across(c(player_team, opponent_team), \(x) standardize_team_names(x)),
+         game = paste(pmin(player_team, opponent_team), "vs.", pmax(player_team, opponent_team))) |>
+  left_join(schedules, join_by(game)) |>
+  
+  filter(tournament == "NCAA Tournament") |>
+  
+  mutate(player_team_seed = case_when(
+    player_team == home_team ~ home_team_seed,
+    player_team == away_team ~ away_team_seed,
+    TRUE ~ NA
+  ),
+  opponent_team_seed = case_when(
+    opponent_team == home_team ~ home_team_seed,
+    opponent_team == away_team ~ away_team_seed,
+    TRUE ~ NA
+  ),
+  player_team_favored = case_when(
+    player_team == favored_team ~ TRUE,
+    opponent_team == favored_team ~ FALSE,
+    TRUE ~ NA
+  )) |>
+
+  pivot_longer(
+    cols = ends_with("_line"),
+    names_to = "prop_platform",
+    values_to = "prop_line",
+    names_transform = \(x) str_remove(x, "_line")) |>
+  
+  filter(!is.na(prop_line)) |>
+  mutate(prop_platform_type = classify_platform_type(prop_platform),
+         prop_id = str_squish(str_to_lower(paste(player_name, prop_platform, prop_market, "no", player_team_seed, player_team, "vs", "no", opponent_team_seed, opponent_team, game_date, sep = "_"))),
+         prop_id = standardize_id(prop_id)) |>
+
+  select(
+    row_id,
+    data_source,
+    file_name,
+    file_date,
+    tournament, 
+    round, 
+    region, 
+    game,
+    game_date,
+    player_name, 
+    player_team, 
+    player_team_seed, 
+    opponent_team, 
+    opponent_team_seed, 
+    game_points_spread, 
+    favored_team,
+    player_team_favored,
+    prop_platform, 
+    prop_platform_type,
+    prop_market, 
+    prop_line,
+    prop_id) 
+```
+
+
+### Load DraftKings props
+#### Load DraftKings Top Props
+```{r draftkings_top_props}
+draftkings_top_50_paths <- dir_ls("../data/draftkings_props/top_50", recurse = TRUE, regexp = "\\.csv")
+
+draftkings_top_props <- draftkings_top_50_paths |>
+  map_dfr(~ read_csv(.x, show_col_types = FALSE) |> mutate(file_name = .x)) |>
+  clean_names() |>
+  
+  separate(raw_data, into = c("game", "game_date", "prop", "prop_line", "odds"), sep = " \\| ", extra = "merge") |>
+  separate(game, into = c("team1", "team2"), sep = " @ ") |>
+  separate(game_date, into = c("game_date", "game_time"), sep = ", ") |>
+  
+  mutate(
+    row_id = row_number(),
+    data_source = "draftkings_top_props",
+    file_date = as.Date(str_extract(file_name, "\\d{4}-\\d{2}-\\d{2}")),
+    
+    across(c(team1, team2), \(x) standardize_team_names(x)),
+    
+    game = paste(pmin(team1, team2), "vs.", pmax(team1, team2)),
+    game_date = as.Date(game_date, format = "%m/%d"),
+    
+    prop = case_when(
+      prop == "First Points Scorer" ~ paste(prop_line, prop, sep = " "),
+      TRUE ~ prop
+  ),
+    prop = standardize_player_names(prop),
+        
+    prop_line = str_remove_all(prop_line, "\\D"),
+    prop_line = as.numeric(prop_line)
+  ) |>
+  
+  separate(prop, into = c("first_name", "last_name", "prop_market"), sep = " ", extra = "merge") |>
+  
+  mutate(
+    player_name = paste(first_name, last_name),
+    prop_market = standardize_market_name(prop_market),
+    prop_platform = "draftkings",
+    prop_platform_type = classify_platform_type(prop_platform)) |>
+  
+  select(row_id, data_source, file_name, file_date, player_name, prop_platform, prop_market, prop_platform_type, prop_line, team1, team2, game, game_date) |>
+
+  left_join(rosters, join_by(player_name)) |> 
+  left_join(schedules, join_by(game, game_date)) |>
+  
+  filter(tournament == "NCAA Tournament") |>
+  
+  mutate(player_team_seed = case_when(
+    player_team == home_team ~ home_team_seed,
+    player_team == away_team ~ away_team_seed,
+    TRUE ~ NA
+  ),
+  
+  opponent_team = case_when(
+    player_team == home_team ~ away_team,
+    player_team == away_team ~ home_team,
+    TRUE ~ NA
+  ),
+  
+  opponent_team_seed = case_when(
+    opponent_team == home_team ~ home_team_seed,
+    opponent_team == away_team ~ away_team_seed,
+    TRUE ~ NA
+  ),
+  
+  player_team_favored = case_when(
+    player_team == favored_team ~ TRUE,
+    opponent_team == favored_team ~ FALSE,
+    TRUE ~ NA)) |>
+  
+  mutate(prop_id = str_squish(str_to_lower(paste(player_name, prop_platform, prop_market, "no", player_team_seed, player_team, "vs", "no", opponent_team_seed, opponent_team, game_date, sep = "_"))),
+         prop_id = standardize_id(prop_id)) |>
+
+  select(
+    row_id,
+    data_source,
+    file_name,
+    file_date,
+    tournament, 
+    round, 
+    region, 
+    game,
+    game_date,
+    player_name, 
+    player_team, 
+    player_team_seed, 
+    opponent_team, 
+    opponent_team_seed, 
+    game_points_spread,
+    favored_team,
+    player_team_favored,
+    prop_platform,
+    prop_platform_type,
+    prop_market,
+    prop_line,
+    prop_id)
+```
+#### Load DraftKings Sorted Props
+```{r draftkings_sorted_props}
+draftkings_sorted_props_paths <- dir_ls("../data/draftkings_props/sorted_props", recurse = TRUE, regexp = "\\.csv")
+
+draftkings_sorted_props <- draftkings_sorted_props_paths |>
+  map_dfr(~ read_csv(.x, show_col_types = FALSE) |> mutate(file_name = .x)) |>
+  select(file_name, scrape_date, matchup, prop_type, player_name) |>
+  clean_names() |>
+  distinct() |>
+  filter(matchup != "Unknown") |>
+  mutate(row_id = row_number(),
+         data_source = "draftkings_sorted_props",
+         file_date = as.Date(str_extract(file_name, "\\d{4}-\\d{2}-\\d{2}"))) |>
+  separate(matchup, into = c("team1", "team2"), sep = " @ ") |>
+  
+  mutate(
+    across(c(team1, team2), \(x) standardize_team_names(x)),
+    
+    game = paste(pmin(team1, team2), "vs.", pmax(team1, team2)),
+    
+    prop = case_when(
+      prop_type == "First Points Scorer" | prop_type == "Assists" | prop_type == "Points"| prop_type == "Points + Rebounds + Assists"| prop_type == "Points + Rebounds" | prop_type == "Points + Assists" | prop_type == "Rebounds" | prop_type == "Three Pointers Made" ~ paste(player_name, prop_type),
+      TRUE ~ prop_type
+    ),
+  
+    prop = standardize_player_names(prop)
+  ) |>
+  
+  separate(prop, into = c("first_name", "last_name", "prop_market"), sep = " ", extra = "merge") |>
+  
+  mutate(
+    player_name = paste(first_name, last_name),
+    prop_market = standardize_market_name(prop_market),
+    prop_platform = "draftkings",
+    prop_platform_type = classify_platform_type(prop_platform),
+    prop_line = NA
+  ) |>
+  
+  select(row_id, data_source, file_name, file_date, game, player_name, prop_platform, prop_market, prop_platform_type, prop_line) |>
+  
+  left_join(rosters, join_by(player_name)) |>
+  filter(!is.na(player_team)) |>
+  left_join(schedules, join_by(game)) |>
+  
+  filter(tournament == "NCAA Tournament") |>
+  
+  mutate(player_team_seed = case_when(
+    player_team == home_team ~ home_team_seed,
+    player_team == away_team ~ away_team_seed,
+    TRUE ~ NA
+  ),
+  
+  opponent_team = case_when(
+    player_team == home_team ~ away_team,
+    player_team == away_team ~ home_team,
+    TRUE ~ NA
+  ),
+  
+  opponent_team_seed = case_when(
+    opponent_team == home_team ~ home_team_seed,
+    opponent_team == away_team ~ away_team_seed,
+    TRUE ~ NA
+  ),
+  
+  player_team_favored = case_when(
+    player_team == favored_team ~ TRUE,
+    opponent_team == favored_team ~ FALSE,
+    TRUE ~ NA)) |>
+  
+  mutate(prop_id = str_squish(str_to_lower(paste(player_name, prop_platform, prop_market, "no", player_team_seed, player_team, "vs", "no", opponent_team_seed, opponent_team, game_date, sep = "_"))),
+         prop_id = standardize_id(prop_id)) |>
+  
+  select(
+    row_id,
+    data_source,
+    file_name,
+    file_date,
+    tournament, 
+    round, 
+    region, 
+    game,
+    game_date,
+    player_name, 
+    player_team, 
+    player_team_seed, 
+    opponent_team, 
+    opponent_team_seed, 
+    game_points_spread,
+    favored_team,
+    player_team_favored,
+    prop_platform,
+    prop_platform_type,
+    prop_market, 
+    prop_line,
+    prop_id)
+```
+### Load Bettingpros Props
+```{r bettingpros_props}
+bettingpros_props_paths <- dir_ls("../data/bettingpros_props", recurse = TRUE, regexp = "\\.csv")
+
+bettingpros_props <- bettingpros_props_paths |>
+  map_dfr(~ read_csv(.x, show_col_types = FALSE) |> mutate(file_name = .x)) |>
+  clean_names() |>
+  rename(prop_market = market_type,
+         thescore_line = thescore_bet_line,
+         prophetx_line = prophetx_light_line) |>
+  select(scrape_date, scrape_time, file_name, player_name, game_matchup, prop_market, ends_with("_line")) |>
+
+  mutate(
+    row_id = row_number(),
+    data_source = "bettingpros",
+    file_date = as.Date(str_extract(file_name, "\\d{4}-\\d{2}-\\d{2}")),
+    player_name = standardize_player_names(player_name),
+    prop_market = standardize_market_name(prop_market),
+  
+    missing_game_info = missing_game_info(scrape_date, player_name),
+    
+    game_matchup = case_when(
+        !is.na(missing_game_info) ~ missing_game_info,
+        TRUE ~ game_matchup
+  )) |>
+  # filter(!is.na(game_matchup)) |>
+  separate(game_matchup, into = c("team1", "team2"), sep = " at ") |>
+  mutate(across(c(team1, team2), \(x) match_school_abbreviations(x)),
+         game = str_squish(paste(pmin(team1, team2), "vs.", pmax(team1, team2)))) |>
+  left_join(schedules, join_by(game)) |>
+  left_join(rosters, join_by(player_name)) |>
+  filter(tournament == "NCAA Tournament") |>
+  mutate(
+    player_team_seed = case_when(
+      player_team == home_team ~ home_team_seed,
+      player_team == away_team ~ away_team_seed,
+      TRUE ~ NA
+    ),
+    opponent_team = case_when(
+      player_team == home_team ~ away_team,
+      player_team == away_team ~ home_team,
+      TRUE ~ NA
+    ),
+    opponent_team_seed = case_when(
+      opponent_team == home_team ~ home_team_seed,
+      opponent_team == away_team ~ away_team_seed,
+      TRUE ~ NA
+    ),
+    player_team_favored = case_when(
+      player_team == favored_team ~ TRUE,
+      opponent_team == favored_team ~ FALSE,
+      TRUE ~ NA
+    )) |>
+  pivot_longer(
+    cols = ends_with("line"), 
+    names_to = "prop_platform", 
+    values_to = "prop_line", 
+    names_transform = \(x) str_remove(x, "_line")) |>
+  
+  filter(!is.na(prop_line)) |>
+  mutate(prop_platform_type = classify_platform_type(prop_platform),
+         prop_id = str_squish(str_to_lower(paste(player_name, prop_platform, prop_market, "no", player_team_seed, player_team, "vs", "no", opponent_team_seed, opponent_team, game_date, sep = "_"))),
+         prop_id = standardize_id(prop_id)) |>
+  
+  select(
+    row_id,
+    data_source,
+    file_name,
+    file_date,
+    tournament, 
+    round, 
+    region, 
+    game,
+    game_date,
+    player_name, 
+    player_team, 
+    player_team_seed, 
+    opponent_team, 
+    opponent_team_seed, 
+    game_points_spread,
+    favored_team,
+    player_team_favored,
+    prop_platform, 
+    prop_platform_type,
+    prop_market, 
+    prop_line,
+    prop_id)
+```
+
+### Bind All Rows
+```{r}
+all_props <- bind_rows(subscription_rotowire_props, scraped_rotowire_props, draftkings_top_props, draftkings_sorted_props, bettingpros_props) |>
+  group_by(prop_id) |>
+  mutate(number_times_identified = n(),
+         file_date = paste(unique(file_date), collapse = ", "),
+         data_source = paste(unique(data_source), collapse = ", "),
+         file_name = paste(unique(file_name), collapse = ", ")) |>
+  arrange(prop_id, desc(file_date)) |>
+  slice_head(n = 1) |>
+  ungroup() |>
+  left_join(box_scores, join_by(game, game_date, player_name, player_team, opponent_team)) |>
+  select(
+    tournament, 
+    round, 
+    game,
+    game_date,
+    player_name, 
+    player_team, 
+    player_team_seed, 
+    player_minutes,
+    opponent_team, 
+    opponent_team_seed, 
+    game_points_spread,
+    favored_team,
+    player_team_favored,
+    prop_platform, 
+    prop_platform_type,
+    prop_market, 
+    prop_line,
+    prop_id,
+    number_times_identified, 
+    data_source, 
+    file_date, 
+    file_name)
+
+remove(subscription_rotowire_props, scraped_rotowire_props, draftkings_top_props, draftkings_sorted_props, bettingpros_props, box_scores, schedules, rosters)
+
+remove(standardize_team_names, match_school_abbreviations, standardize_player_names, standardize_id, standardize_market_name, classify_platform_type, missing_game_info)
+
+remove(draftkings_sorted_props_paths, draftkings_top_50_paths, scraped_rotowire_props_paths, subscription_rotowire_props_paths, bettingpros_props_paths, box_score_paths, schedules_paths, roster_paths)
+
+write_csv(all_props |> select(-file_name), "../data/cleaned_props/cleaned_props.csv")
+```
+
+
+
