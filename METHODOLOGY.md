@@ -47,23 +47,31 @@ What each one pulls:
   everything else hangs off of.
 - `rotowire_public_data_scraper.py` — RotoWire's public props page, which
   aggregates lines across several books.
-- `rotowire_subscription_data_downloader.py` — the paid RotoWire feed, which has
-  historical line movement. This is the only scraper that logs in; it reads my
-  username and password from a `.env` file, never from the code itself.
+- `rotowire_subscription_data_downloader.py` — the paid RotoWire feed. It's the
+  one source I had that carries historical line movement, meaning how a line
+  opened and moved over the hours before a game, which none of the public sites
+  expose. It's also the only scraper that logs in; it reads my username and
+  password from a `.env` file, never from the code itself.
 - `draftkings_scraper.py` and `draftkings_props_by_game_scraper.py` — DraftKings'
   live player props, one sorted by top props and one walked game by game.
 - `bettingpros_scraper.py` — BettingPros, which is useful because it carries both
   opening lines and current odds across a lot of books at once.
 - `march_madness_box_scores_scraper.py` — the actual box scores, so I can see
   what each player really did and compare it to the line.
-- `roster_scraper.py` — team rosters, which I use as a lookup to attach a player
-  to a team when a props feed only gives me a name.
+- `roster_scraper.py` — team rosters pulled from each school's official athletics
+  site. Along with player names, it grabs the social media handles linked on each
+  player's roster profile (Instagram, X, TikTok, Facebook). I used it two ways,
+  both explained further down: as a player‑to‑team lookup for the betting data,
+  and as the first step in the harassment reporting.
 
 ## How I ran them (GitHub Actions)
 
-Lines move all day, so scraping once wasn't enough — I needed snapshots from
-morning through tip‑off to see how the market shifted. Doing that by hand every
-day for three weeks wasn't realistic, so I automated it with GitHub Actions.
+I scraped several times a day because of how these markets behave. Books post
+props as they create them, on their own schedule, and then take them down once a
+game tips off, sometimes earlier. A prop I didn't catch before it came down was
+simply gone. Running through the day was how I tried to grab each line during the
+window it actually existed. Doing that by hand every day for three weeks wasn't
+realistic, so I automated it with GitHub Actions.
 
 The setup was a set of scheduled workflows, one per source. Each one is a cron
 job that fires several times a day, spins up a fresh Ubuntu machine on GitHub's
@@ -74,9 +82,8 @@ left a manual trigger on each so I could kick one off whenever I needed to.
 I used Actions specifically for a few reasons. It's free for public repos and
 there's no server for me to babysit. Committing the output back into the repo
 meant my data history was version‑controlled and sat right next to the code that
-produced it, so every scrape was dated and I never had to think about where
-files were going. And because each run was its own commit, I ended up with a
-built‑in record of line movement over time without doing anything extra.
+produced it, so every scrape was dated and timestamped and I never had to think
+about where files were going.
 
 I've kept the actual workflow files out of this demo repo, but that's the whole
 idea: scheduled jobs that scrape on a timer and commit the results back.
@@ -127,6 +134,14 @@ they came from. With that key in place, each props source gets joined to the
 ESPN schedule (for seeds, region, round, and the spread), to the rosters (to
 attach a player to a team), and to the box scores (for what actually happened).
 
+The roster join is there for a specific reason. The RotoWire feeds already told
+me each player's team and opponent, so they dropped into a game on their own. But
+DraftKings and BettingPros only gave me a player's name and the bet, not the
+team. Since a game is keyed on its pair of teams, a name with no team can't be
+placed in a game, which means no seed, no spread, no round, and no way to line it
+up against the box score. The roster table is the bridge: look up the name, get
+the team, and now the player belongs to a game.
+
 A couple of the feeds store each sportsbook in its own column, so I pivot those
 into one row per book before combining. Then I stack all the sources together
 and dedupe on a `prop_id` I build from the player, book, market, seeds, teams,
@@ -162,6 +177,48 @@ loaded with props, which is part of the point. The folder has the raw output fro
 each public source in its own original format alongside the cleaned, merged
 version, so you can pick a player and follow them from the messy inputs through to
 the final row. There's a README in that folder walking through it.
+
+## The social handles and the harassment reporting
+
+The roster scraper does double duty, and the second job is the harassment side of
+this project.
+
+`roster_scraper.py` works off `team_roster_links.csv`, which is just each
+tournament team paired with the URL of its official men's basketball roster page.
+The scraper visits each of those pages — they mostly run on a handful of common
+platforms like Sidearm Sports and WordPress — and for every player it pulls the
+name plus whatever social accounts the school linked on that player's profile. In
+practice that's the Instagram, X, TikTok, and Facebook handles a program puts on
+its own roster page, so these are the players' real, school‑listed accounts
+rather than anything I had to guess at.
+
+I needed those handles to report on the abuse players were getting. The Instagram
+handle is what let me find a player's account and their posts, and the comments on
+those posts are where the harassment lived. So the chain runs handle → the
+player's posts → the comments on them, which is how a given comment gets tied back
+to the specific player it was aimed at. The comment data itself isn't in this
+repo, for the privacy reasons below, but the handle collection here is the first
+link in that chain.
+
+## What the data misses (it's an undercount)
+
+I want to be straight about coverage: this is not every prop that was offered.
+It's a floor, and it undercounts, for two reasons.
+
+First, the takedowns. Books pull props once a game starts, so anything posted and
+removed between two of my scrapes, or only put up after my last run before
+tip‑off, never got captured. The scraping window and the betting window didn't
+line up perfectly, and the gap is lost props.
+
+Second, uneven coverage across sites. The sources don't all carry the same
+markets. BettingPros, for one, only posted lines for points and rebounds, so for
+any book I could only see through BettingPros, anything beyond points and
+rebounds was invisible to me. And some apps simply offered far more than I could
+keep up with — Fliff alone had a huge number of props I had no realistic way to
+track in full. So where a market existed on a site I wasn't capturing directly,
+it's just not in here.
+
+Treat the counts as a minimum, not a complete tally.
 
 ## What I left out, and why
 
