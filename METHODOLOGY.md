@@ -1,225 +1,181 @@
 # Methodology
 
-How to collect, clean, and combine college‑basketball prop‑betting data into a
-single analysis‑ready table — and the reporting angles each step opens up.
+This repo holds the code I used to collect and clean the college basketball
+player prop‑betting data behind my March Madness reporting, plus one sample game
+so you can see what the data actually looks like. This file is a tour of what's
+in here and what each piece does.
 
-This document is written so you can follow the *reasoning* without running any
-code. Where it helps, it points to the exact function in
-[`analysis/props.Rmd`](analysis/props.Rmd) or the scraper in
-[`scrapers/`](scrapers/).
+First, what a "prop" is, since everything revolves around it. A player prop is a
+bet on one player's stat line instead of on who wins the game. "Cameron Boozer
+over 22.5 points" is a prop. Sportsbooks and daily‑fantasy apps put up dozens of
+them per game, and during the tournament that became a flood of bets on the
+names of mostly teenage and early‑twenties players. That's what I set out to
+measure, and none of it is something you can just download. I had to scrape it
+from several sites that all describe the same players, teams, and bets
+differently, and then reconcile them.
 
----
+## What's in the repo
 
-## 1. The reporting question
+- `scrapers/` — one Python script per site I pulled from.
+- `analysis/props.Rmd` — the R notebook that cleans every source and merges them
+  into a single table. This is where most of the real work lives.
+- `analysis/eligibility.Rmd` — a separate, smaller analysis of who can legally
+  place these bets, by state and age.
+- `data/sample/` — a single game (Duke vs. Siena) carried from raw scraper output
+  through to the cleaned, merged result, so the pipeline is concrete.
+- `data/eligibility/` — the small public tables the eligibility notebook uses.
+- `config/`, `pyproject.toml`, `.env.example` — setup.
 
-Player **prop bets** — wagers on an individual's stat line, e.g. *"Cameron
-Boozer over 22.5 points"* — exploded during the NCAA tournament, including on
-daily‑fantasy apps that take action in states where traditional sportsbooks are
-illegal. To report on that market you need to answer questions like:
+I left the full scraped dataset out on purpose. It's large, a chunk of it came
+from a paid subscription I can't redistribute, and the harassment side of the
+project involved social‑media comments with real people's names in them. None of
+that belongs in a public demo. See the last section for more.
 
-- How many props were offered on each game, and on which players?
-- How did lines differ between sportsbooks and daily‑fantasy (DFS) operators?
-- How did lines move as tip‑off approached?
-- How did the lines compare to what players actually did?
-- Who is even legally allowed to place these bets?
+## The scrapers
 
-None of that is downloadable. It has to be assembled from several sites that
-each describe teams, players, and markets *differently*. The hard part of this
-story is not scraping — it is **reconciliation**.
+Everything in `scrapers/` is a Python script driving Selenium with headless
+Chrome. I went with Selenium because these are all heavy JavaScript pages —
+lines load in after the page does, there are cookie banners to dismiss, content
+that only appears when you scroll, and so on. A plain `requests` grab gets you
+almost nothing. The scripts handle the cookie dialogs and lazy loading and retry
+when a page doesn't cooperate.
 
-## 2. Unit of analysis: one prop
+What each one pulls:
 
-The whole pipeline drives toward one tidy table where **one row = one prop
-line** from one operator. The shared schema (see the final `select()` in
-`props.Rmd`) is:
+- `espn_schedule_scraper.py` — the tournament schedule from ESPN: matchups,
+  seeds, regions, rounds, tip times, and the point spread. This is the backbone
+  everything else hangs off of.
+- `rotowire_public_data_scraper.py` — RotoWire's public props page, which
+  aggregates lines across several books.
+- `rotowire_subscription_data_downloader.py` — the paid RotoWire feed, which has
+  historical line movement. This is the only scraper that logs in; it reads my
+  username and password from a `.env` file, never from the code itself.
+- `draftkings_scraper.py` and `draftkings_props_by_game_scraper.py` — DraftKings'
+  live player props, one sorted by top props and one walked game by game.
+- `bettingpros_scraper.py` — BettingPros, which is useful because it carries both
+  opening lines and current odds across a lot of books at once.
+- `march_madness_box_scores_scraper.py` — the actual box scores, so I can see
+  what each player really did and compare it to the line.
+- `roster_scraper.py` — team rosters, which I use as a lookup to attach a player
+  to a team when a props feed only gives me a name.
 
-| Field | Meaning |
-| --- | --- |
-| `tournament`, `round`, `region` | from the ESPN schedule |
-| `game`, `game_date` | normalized matchup + date |
-| `player_name`, `player_team`, `player_team_seed` | who the prop is on |
-| `opponent_team`, `opponent_team_seed` | who they played |
-| `game_points_spread`, `favored_team`, `player_team_favored` | game context |
-| `prop_platform` | the book/app (draftkings, prizepicks, …) |
-| `prop_platform_type` | `sportsbook`, `dfs`, or `other` |
-| `prop_market` | points, rebounds, assists, … (standardized) |
-| `prop_line` | the number |
-| `prop_id` | a deterministic key identifying this exact prop |
-| `number_times_identified` | how many source rows confirmed it |
-| `data_source`, `file_date` | provenance |
-| `player_minutes` | from the box score — did they even play? |
+## How I ran them (GitHub Actions)
 
-`prop_id` is the linchpin. It is built deterministically from
-`player + platform + market + seeds + teams + date`, so the *same* prop scraped
-from three different sites collapses to one row — while preserving a count of how
-many sources saw it.
+Lines move all day, so scraping once wasn't enough — I needed snapshots from
+morning through tip‑off to see how the market shifted. Doing that by hand every
+day for three weeks wasn't realistic, so I automated it with GitHub Actions.
 
-## 3. The sources
+The setup was a set of scheduled workflows, one per source. Each one is a cron
+job that fires several times a day, spins up a fresh Ubuntu machine on GitHub's
+side, installs Chrome and my Python dependencies, runs the scraper, and then
+commits the new data file straight back into the repo with a timestamp. I also
+left a manual trigger on each so I could kick one off whenever I needed to.
 
-| Source | Scraper | Public? | Why we use it |
-| --- | --- | --- | --- |
-| **ESPN** schedule | `espn_schedule_scraper.py` | ✅ | The spine: seeds, regions, rounds, spreads, dates |
-| **RotoWire** (public) | `rotowire_public_data_scraper.py` | ✅ | Props aggregated across books |
-| **RotoWire** (subscription) | `rotowire_subscription_data_downloader.py` | 🔒 paywalled | Historical line‑movement feed |
-| **DraftKings** | `draftkings_scraper.py`, `draftkings_props_by_game_scraper.py` | ✅ | A major sportsbook's live props |
-| **BettingPros** | `bettingpros_scraper.py` | ✅ | Opening lines + many books' current odds |
-| **Box scores** | `march_madness_box_scores_scraper.py` | ✅ | The *actual outcomes* |
-| **Rosters** | `roster_scraper.py` | ✅ | Player → team lookup |
+I used Actions specifically for a few reasons. It's free for public repos and
+there's no server for me to babysit. Committing the output back into the repo
+meant my data history was version‑controlled and sat right next to the code that
+produced it, so every scrape was dated and I never had to think about where
+files were going. And because each run was its own commit, I ended up with a
+built‑in record of line movement over time without doing anything extra.
 
-All scrapers use **Selenium with headless Chrome** because these are
-JavaScript‑heavy pages. They handle cookie banners, lazy‑loaded content, and
-retries. The only one that authenticates is the RotoWire subscription
-downloader, which reads `ROTOWIRE_USERNAME` / `ROTOWIRE_PASSWORD` from the
-environment (never hard‑coded — see `.env.example`).
+I've kept the actual workflow files out of this demo repo, but that's the whole
+idea: scheduled jobs that scrape on a timer and commit the results back.
 
-> **Why so many sources?** No single site is complete or trustworthy on its own.
-> Cross‑referencing is both a data‑quality strategy (a prop confirmed by three
-> sources is real) *and* a story engine (the *differences* between books are the
-> story).
+## The cleaning problem
 
-## 4. Collection cadence
+The reason this project is mostly a cleaning project: every site names things
+differently. ESPN's spread data calls UConn `CONN`, RotoWire calls it
+`Connecticut`, and the bracket calls it `UConn`. One book lists a market as
+`Reb+Ast`, another as `Rebounds + Assists`. A player shows up as `A.J. Dybantsa`
+in one place and `AJ Dybantsa` in another. Until all of that agrees, nothing
+lines up and nothing joins.
 
-Lines move all day, so the scrapers ran on a schedule via **GitHub Actions**
-(see [`.github/workflows/`](.github/workflows/)), each run committing fresh,
-timestamped files back to the repo to build a historical record:
+`props.Rmd` handles this up front with a set of small functions that I run over
+every source before I try to combine anything:
 
-- **~1:30 AM ET** — RotoWire (captures the *previous* day's games + results)
-- **late morning → evening** — DraftKings and BettingPros every 1–2 hours
-- **midday** — ESPN schedule for upcoming games
+- `standardize_team_names()` and `match_school_abbreviations()` map every team
+  variant and every ESPN abbreviation to one canonical name. These are long,
+  explicit lists on purpose — each rule is something an editor or fact‑checker
+  can read and check.
+- `standardize_player_names()` strips suffixes like `Jr.` and `III`, removes
+  accents and quoted nicknames, and patches the handful of known name mismatches
+  by hand (a player listed as `Solomon Ball` on one site and `Solo Ball` on
+  another, for example).
+- `standardize_market_name()` collapses all the different ways books write a bet
+  type into one vocabulary (`pts` becomes `points`, `3pt made` becomes
+  `three_pointers_made`, and so on).
+- `classify_platform_type()` tags each operator as a sportsbook, a daily‑fantasy
+  app, or other. This one matters a lot, because the split between regulated
+  sportsbooks and DFS apps is central to the reporting.
+- `missing_game_info()` is a small, dated lookup that fills in the matchup for
+  the few rows where a source dropped it. I'd rather correct those in code, where
+  the fix is documented and visible, than quietly edit a spreadsheet.
 
-Capturing the same prop repeatedly across the day is what makes **line‑movement**
-analysis possible later.
+## Merging it into one table
 
-## 5. Cleaning — the reconciliation problem
+The goal is a single tidy table where one row is one prop line from one operator.
 
-Every site spells things differently. ESPN says `CONN`; RotoWire says
-`Connecticut`; the bracket says `UConn`. One book lists `Reb+Ast`, another
-`Rebounds + Assists`. A player is `A.J. Dybantsa` here and `AJ Dybantsa` there.
-Until those agree, nothing joins. `props.Rmd` solves this with a set of small,
-auditable standardization functions applied to *every* source before merging:
-
-- **`standardize_team_names()`** — a long, explicit lookup mapping every variant
-  to one canonical name (`Connecticut → UConn`, `Texas Christian → TCU`, …).
-  Explicit and boring on purpose: each rule is reviewable and defensible.
-- **`match_school_abbreviations()`** — maps ESPN's spread abbreviations
-  (`DUKE`, `SIE`, `CONN`) to the same canonical names.
-- **`standardize_player_names()`** — strips suffixes (`Jr.`, `III`), accents,
-  and nicknames‑in‑quotes, then fixes known one‑off mismatches by hand
-  (e.g. `Solomon Ball → Solo Ball`).
-- **`standardize_market_name()`** — collapses market labels to a controlled
-  vocabulary (`pts → points`, `3pt made → three_pointers_made`, `reb →
-  rebounds`).
-- **`classify_platform_type()`** — tags each operator as `sportsbook`, `dfs`
-  (PrizePicks, Underdog, Sleeper, …), or `other`. **This single column powers
-  the central story angle**: sportsbooks vs. daily‑fantasy.
-- **`standardize_id()`** — strips punctuation/spacing so the composite `prop_id`
-  is stable.
-- **`missing_game_info()`** — a tiny, dated manual patch table for the handful of
-  rows where a source omitted the matchup. Hand‑corrections are documented in
-  code rather than done silently in a spreadsheet — that is the auditable way.
-
-> **Reporting takeaway for the talk:** the credibility of the whole project
-> lives in these functions. They are deterministic, version‑controlled, and
-> readable, so any editor or fact‑checker can see *exactly* how a messy label
-> became a clean one.
-
-## 6. Merging — how the sources come together
-
-The **canonical join key for a game** is a sorted team pair:
+The key that ties a prop to a game is a sorted team pairing:
 
 ```r
 game = paste(pmin(team_a, team_b), "vs.", pmax(team_a, team_b))
 ```
 
-Sorting alphabetically means `Duke @ Siena` and `Siena vs. Duke` both become the
-same `"Duke vs. Siena"` regardless of home/away or scrape order. With that key,
-each prop source is joined to:
+Sorting the two teams alphabetically means `Duke @ Siena` and `Siena vs. Duke`
+both come out as `"Duke vs. Siena"` no matter the home/away order or which scrape
+they came from. With that key in place, each props source gets joined to the
+ESPN schedule (for seeds, region, round, and the spread), to the rosters (to
+attach a player to a team), and to the box scores (for what actually happened).
 
-1. **ESPN schedule** on `game` → attaches round, region, seeds, spread, and
-   resolves which team is favored and whether the prop's player is on the
-   favored side.
-2. **Rosters** on `player_name` → fills in the player's team where a props feed
-   only gave a name (needed for DraftKings/BettingPros).
-3. **Box scores** on `game + game_date + player + teams` → attaches
-   `player_minutes` and (in the broader analysis) the actual stat line, so each
-   line can be compared to reality.
+A couple of the feeds store each sportsbook in its own column, so I pivot those
+into one row per book before combining. Then I stack all the sources together
+and dedupe on a `prop_id` I build from the player, book, market, seeds, teams,
+and date. The same prop scraped off three different sites collapses to one row,
+but I keep a count of how many sources saw it (`number_times_identified`) and the
+list of which ones (`data_source`), so I can always trace a line back to where it
+came from. The cleaned result for the sample game is in
+`data/sample/cleaned_props_duke_siena.csv`.
 
-Sources arrive in different shapes and are reshaped to the common schema before
-binding — notably the scraped RotoWire and BettingPros feeds store each book in
-its own `*_line` column, so they are **pivoted long** (`pivot_longer`) into one
-row per book.
+## Box scores
 
-Finally, all sources are stacked and **deduplicated on `prop_id`**:
+The box score scraper gives me each player's real minutes and stats. Joined onto
+the props table, that's what lets me ask whether a player went over or under, and
+whether a line was set anywhere near reality. The sample includes
+`player_minutes`, which on its own already flags props posted on players who
+barely got off the bench.
 
-```r
-bind_rows(all five sources) |>
-  group_by(prop_id) |>
-  mutate(number_times_identified = n(),
-         data_source = paste(unique(data_source), collapse = ", ")) |>
-  slice_head(n = 1)            # keep one row per prop, but remember who saw it
-```
+## The eligibility analysis
 
-The output is [`data/sample/cleaned_props_duke_siena.csv`](data/sample/cleaned_props_duke_siena.csv)
-(for the one sample game). `number_times_identified` and `data_source` are kept
-as **provenance** — you can always trace a row back to which sites confirmed it.
+`eligibility.Rmd` is a separate, smaller piece. It joins a table I built of state
+rules — which operators are legal where, and the minimum betting age — against
+Census population estimates by age (pulled through the `tidycensus` API). The
+output estimates how many people in each state can legally place these bets, and
+by extension how many are reached by DFS apps in places where they'd be too young
+or where sportsbooks aren't legal at all. It's a way to put a number on the legal
+gray area these apps operate in.
 
-## 7. Outcomes — comparing lines to reality
+## The sample game
 
-Box scores (`march_madness_box_scores_scraper.py`) provide each player's actual
-minutes and stats. Joined onto the props table, they let you ask: *did the
-player go over or under?* and *was the line "right"?* The merged sample includes
-`player_minutes` so you can immediately spot props set on players who barely
-played.
+`data/sample/` is one first‑round game, Duke vs. Siena, a 1‑seed against a
+16‑seed. I picked a blowout on purpose: even a game decided by 27 points was
+loaded with props, which is part of the point. The folder has the raw output from
+each public source in its own original format alongside the cleaned, merged
+version, so you can pick a player and follow them from the messy inputs through to
+the final row. There's a README in that folder walking through it.
 
-## 8. A second dataset: who can legally bet?
+## What I left out, and why
 
-[`analysis/eligibility.Rmd`](analysis/eligibility.Rmd) joins a hand‑built table
-of **state rules** (`data/eligibility/eligibility_age_by_state.csv` — which
-operators are legal, and the minimum age) against **U.S. Census** population
-estimates by age (via the `tidycensus` API). The output,
-`eligible_population_by_state.csv`, estimates how many people in each state can
-legally place college player‑prop bets — and, by subtraction, how many are
-reached by DFS apps in states where they'd otherwise be too young or where
-sportsbooks are banned. This turns "DFS operates in a legal gray area" into a
-**number**.
+- I'm not republishing the paid RotoWire feed. The code that pulls it is here;
+  the bulk data isn't.
+- There's no social‑media comment data in this repo. The harassment reporting
+  used comments that contain real usernames and real names, and that's not
+  something to post publicly. If you do similar work, be careful with commenter
+  and victim data and publish as little of it as you can.
+- I'm not shipping the full scraped corpus. It's big and you don't need it to
+  understand how any of this works.
+- Credentials live in a `.env` file that's never committed. Use `.env.example`
+  as the template.
 
-## 9. Story angles this structure unlocks
-
-Because everything lands in one tidy, sourced table, each cleaning/merging
-decision is also a reporting lever:
-
-- **Sportsbook vs. DFS** (`prop_platform_type`): are daily‑fantasy apps offering
-  props in states where sportsbooks can't operate? Who do they reach?
-- **Line movement** (repeated scrapes + `file_date`): which props moved most, and
-  when? Sharp moves can signal where money — or information — went.
-- **Cross‑book discrepancies** (`number_times_identified`, multiple
-  `prop_platform`s per `prop_id`): where do books disagree on the same player?
-- **Props vs. outcomes** (box‑score join): which lines were systematically too
-  high or low? On which players?
-- **Favorites vs. underdogs / seeds** (`player_team_favored`, seeds): are blowout
-  games (like a 1‑vs‑16) still loaded with props?
-- **Volume by player** (`props_per_player_tournament_wide` in the full project):
-  which young, often teenage, athletes had the most action on their names — the
-  bridge to the harassment‑of‑players reporting thread.
-- **Legal reach** (eligibility join): how many people, by state and age, can
-  actually place these bets?
-
-## 10. Limitations and ethics
-
-- **Terms of service.** Each site has its own ToS. Scrape responsibly, rate‑limit,
-  and consult a lawyer/editor before publishing collected data.
-- **Paywalled data is not redistributed.** Only the *code* for the RotoWire
-  subscription feed is shown; the bulk feed itself is excluded.
-- **No personal data here.** The broader project studied harassment aimed at
-  players using social‑media comments containing real usernames and names. That
-  data is **excluded** from this repo. If you do similar work, treat commenter
-  and victim data with care and minimize what you publish.
-- **Hand corrections are documented, not hidden.** Every manual fix lives in a
-  named function in version control so it can be audited.
-- **Names ≠ identity matches.** Player‑name joins can misfire on common names;
-  rosters are used to disambiguate, but spot‑checking is still required.
-
----
-
-*Questions about the method? The code in [`scrapers/`](scrapers/) and
-[`analysis/`](analysis/) is the ground truth; this document is the map.*
+One real caveat: matching on names is imperfect. Common names can collide, which
+is why I lean on the rosters to disambiguate, but it still needs spot‑checking.
+And before you scrape any of these sites yourself, read their terms of service.
