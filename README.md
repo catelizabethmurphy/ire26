@@ -1,16 +1,23 @@
 # Tracking the college basketball prop‑betting market
 
 This is a demo repo for my IRE talk on how I collected and cleaned the player
-prop‑betting data behind my March Madness reporting. It has the scraping and
-analysis code, a written walkthrough of how it all fits together, and one sample
-game so you can see what the data looks like. It does not have the full dataset I
-collected — that's large, partly from a paid subscription I can't republish, and
-the harassment side of the project involved comments with real people's names in
-them. So this is the method, not the archive.
+prop‑betting data behind my March Madness reporting. It has the scraping code, a
+single comprehensive R notebook that walks the whole pipeline and analysis, a
+written methodology, and one sample game so you can see what the data looks like.
+It does not have the full dataset I collected — that's large, and this repo is meant
+to show the method, not host the archive. The sample game runs everything end‑to‑end.
 
-**[`METHODOLOGY.md`](METHODOLOGY.md) is the main document.** It's a tour of
-what's in here and what each part does, from the scrapers through to the cleaned,
-merged table.
+**Start with [`analysis/analysis.Rmd`](analysis/analysis.Rmd)** — one notebook that
+goes step by step from raw scraped files to a cleaned table of bets, grades every
+bet against the real box score, and folds in the legal‑eligibility analysis. It
+runs top to bottom on the sample game with no credentials or network.
+[`METHODOLOGY.md`](METHODOLOGY.md) is the prose companion.
+
+To keep this public version clean and reproducible, **the prop data comes from one
+provider — RotoWire, using both its free and paid feeds** — with ESPN, rosters,
+and box scores supporting it. The two feeds describe the same bets differently, on
+purpose: it's the clearest way to show why the standardization step matters. The
+same method extends to any other book (see the methodology).
 
 ## What this is about
 
@@ -25,36 +32,32 @@ final box scores so each line could be tied to a real game and a real outcome.
 
 | Source | What it gives me | Access |
 | --- | --- | --- |
-| ESPN | Schedule, seeds, regions, point spreads | Public |
-| RotoWire (public) | Props aggregated across books | Public |
-| RotoWire (subscription) | Historical line movement | Paid |
-| DraftKings | Live sportsbook player props | Public |
-| BettingPros | Opening lines + current odds across many books | Public |
-| Box scores | Final per‑player stats (what actually happened) | Public |
-| Rosters | Player → team lookup | Public |
+| RotoWire (public) | Props aggregated across sportsbooks — **a prop source** | Public |
+| RotoWire (subscription) | Props incl. the **DFS apps** (PrizePicks, Underdog, …) — **a prop source** | Paid (one‑game sample) |
+| ESPN | Schedule, seeds, regions, point spreads, game totals | Public |
+| Rosters | Player → team bridge + social handles | Public |
+| Box scores | Final per‑player stats (grade every bet) | Public |
 | U.S. Census | State population by age (eligibility analysis) | Public API |
 
 ## Layout
 
 ```
 ire26/
-├── METHODOLOGY.md      read this first
-├── scrapers/           one Python/Selenium scraper per source
-├── analysis/
-│   ├── props.Rmd       the clean + merge pipeline (R)
-│   └── eligibility.Rmd who can legally bet, by state and age
+├── analysis/analysis.Rmd   start here: the full pipeline + analysis (R)
+├── METHODOLOGY.md          prose companion to the notebook
+├── scrapers/               one Python/Selenium scraper per source
 ├── data/
-│   ├── sample/         one game (Duke vs. Siena), raw inputs + merged output
-│   └── eligibility/    the public tables the eligibility notebook uses
-├── config/             older pip setup, kept for reference
-├── pyproject.toml      Python deps (I use uv)
-└── .env.example        credential template (only the subscription scraper needs it)
+│   ├── sample/             one game (Duke vs. Siena), raw inputs + merged output
+│   └── eligibility/        the public tables the eligibility analysis uses
+├── config/                 older pip setup, kept for reference
+├── pyproject.toml          Python deps (I use uv)
+└── .env.example            credential template (only the subscription scraper needs it)
 ```
 
 ## What I left out, and why
 
-- The social‑media comment data, which has real usernames and names in it.
-- The paid RotoWire feed — the scraper code is here, the bulk data isn't.
+- The social‑media comment data; that side of the project is reported separately.
+- The full paid RotoWire feed — the scraper code is here and there's a one‑game sample, but not the bulk archive.
 - The full scraped corpus. It's big and you don't need it to follow the method.
 - Credentials. They live in a `.env` that's never committed; see `.env.example`.
 
@@ -75,9 +78,10 @@ uv run python3 scrapers/rotowire_public_data_scraper.py
 
 Chrome and ChromeDriver are handled automatically by `webdriver-manager`.
 
-Analysis (R): open `analysis/props.Rmd` in RStudio. As written it reads the full
-data tree, so to run it against the sample you'd point the `dir_ls(...)` paths at
-`data/sample/`. It's mainly here to show the cleaning and merge logic;
-`METHODOLOGY.md` explains it in plain English.
+Analysis (R): open `analysis/analysis.Rmd` in RStudio and knit it, or run
+`rmarkdown::render("analysis/analysis.Rmd")`. As written it reads the sample game
+in `data/sample/` and the saved eligibility table in `data/eligibility/`, so it
+runs end‑to‑end with no credentials and no network. `METHODOLOGY.md` explains the
+same pipeline in plain English.
 
 If you scrape any of these sites yourself, check their terms of service first.

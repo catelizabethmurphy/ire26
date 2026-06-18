@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player Props & College Athletes — IRE 2026 | Cat Murphy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=PT+Sans+Caption:wght@400;700&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-brand" href="#">IRE 2026 · Cat Murphy</a>
+    <ul class="nav-links">
+      <li><a href="#what-is-a-prop">The problem</a></li>
+      <li><a href="#tornado">Visualizations</a></li>
+      <li><a href="#findings">Findings</a></li>
+      <li><a href="#methodology">How we got there</a></li>
+      <li><a href="#data-notes">Data notes</a></li>
+      <li><a href="#extend">Where next</a></li>
+      <li><a href="#lessons">Lessons</a></li>
+      <li><a href="#resources">Resources</a></li>
+    </ul>
+    <button class="hamburger" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="mobile-menu">
+      <a href="#what-is-a-prop">The problem</a>
+      <a href="#tornado">Visualizations</a>
+      <a href="#findings">Findings</a>
+      <a href="#methodology">How we got there</a>
+      <a href="#data-notes">Data notes</a>
+      <a href="#extend">Where next</a>
+      <a href="#lessons">Lessons</a>
+      <a href="#resources">Resources</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="hero-eyebrow">IRE 2026 · Session Resource Page</p>
+      <h1>Why you should care about sports betting, even if you don't cover sports</h1>
+      <p class="hero-deck">
+        During the 2026 NCAA tournament, we identified more than 21,000 opportunities to risk money on individual college athletes — most of them beyond the reach of state sports-betting law. This page walks through what a prop bet is, why the data is hard to get, how we got it, and what it shows.
+      </p>
+      <p class="hero-meta">
+        <span>Cat Murphy</span> · Shirley Povich Center for Sports Journalism &amp; Howard Center for Investigative Journalism, University of Maryland
+      </p>
+    </div>
+  </header>
+
+  <!-- WHAT IS A PROP BET -->
+  <hr class="section-divider" id="what-is-a-prop" />
+  <section class="section-white">
+    <div class="section section-narrow">
+      <p class="section-label">The problem</p>
+      <h2 class="section-title">Prop bets on college athletes: an underreported beat with a data problem</h2>
+
+      <p class="body-p">
+        A player prop is a wager on one athlete's individual stat line rather than on who wins. "Cameron Boozer over 22.5 points" is a prop. The bet is attached to a specific person, not a team or an outcome.
+      </p>
+      <p class="body-p">
+        For professional athletes, this is well-covered territory. The volume of props on NFL and NBA players, the movement of lines, the relationship between betting and player safety — reporters and researchers have been working that beat for years. For college athletes, who are mostly teenagers and early-twenties students without agents or union protections, the equivalent data barely exists.
+      </p>
+      <p class="body-p">
+        That gap matters because there are signs the same dynamics play out at the college level. Nearly 10% of Division I student-athletes who responded to an <a href="https://www.ncaa.org/sports/2024/9/10/ncaa-national-study-on-collegiate-sports-wagering.aspx" target="_blank" rel="noopener" class="red-link">NCAA survey</a> reported experiencing abuse related to betting losses — among men's basketball players, the figure was closer to half. After UConn's Braylon Mullins hit a game-winning three to knock out No. 1 seed Duke this tournament, one commenter on his Instagram told him: "If I ever see you Braylon I'm literally going to f—ing hurt you." Others complained he hadn't turned the ball over enough. Whether a direct line runs from a specific prop bet to a specific harassing comment is hard to establish — but the harassment is documented, and prop bets put individual athletes' names on individual wagers.
+      </p>
+      <p class="body-p body-p-last">
+        The NCAA has pushed for bans on college player props. Most states with legal sports betting restrict them at regulated sportsbooks. But how many prop-like bets on college athletes actually exist across all platforms — including ones that don't operate as regulated sportsbooks — was an open question. There's no public database. Platforms post lines in real time and pull them at tip-off. To answer it, we had to build the dataset ourselves.
+      </p>
+
+
+      <p class="source-line">
+        Related: <a href="https://cnsmaryland.org/2026/04/06/march-madness-is-almost-over-abuse-from-bettors-likely-isnt/" target="_blank" rel="noopener" class="red-link">March Madness is over. Abuse from bettors likely isn't</a> — CNS Maryland / Povich Center &amp; Howard Center, April 2026
+      </p>
+
+    </div>
+  </section>
+
+  <!-- TORNADO SCROLLYTELLING -->
+  <hr class="section-divider" id="tornado" />
+  <div class="section section-pb-sm">
+    <p class="section-label">Props per round</p>
+    <h2 class="section-title">How prop volume grew as the tournament progressed</h2>
+  </div>
+
+  <div class="scrolly">
+    <div class="sticky-graphic">
+      <!-- tornado -->
+      <div id="tornado-container">
+        <svg viewBox="0 0 2707.77 6281.84" xmlns="http://www.w3.org/2000/svg">
+          <path id="first-four" class="cls-1" data-round="first-four" d="M615.84,5234.9c0,523.52,143.37,523.52,143.37,1046.94h1189.34c0-523.52-1332.59-523.52-1332.59-1046.94"/>
+          <text x="1335" y="6030" class="round-label" data-round="first-four" id="first-four-hed" text-anchor="middle" font-size="6.5em" font-weight="bold">First Four</text>
+          <text x="1335" y="6160" class="round-label" data-round="first-four" id="first-four-desc" text-anchor="middle" font-family="PT Sans Caption, sans-serif" font-size="4.5em" font-style="italic">224 props per game</text>
+          <path id="first-round" class="cls-2" data-round="first-round" d="M541.58,4187.86c0,523.52,74.26,523.52,74.26,1046.94s1332.71,523.52,1332.71,1047.04c0-523.52,143.37-523.52,143.37-1046.94s-1550.35-523.52-1550.35-1047.05"/>
+          <text x="1335" y="5190" class="round-label" data-round="first-round" id="first-round-hed" text-anchor="middle" font-size="7em" font-weight="bold">First Round</text>
+          <text x="1335" y="5320" class="round-label" data-round="first-round" id="first-round-desc" text-anchor="middle" font-family="PT Sans Caption, sans-serif" font-size="5em" font-style="italic">278 props per game</text>
+          <path id="second-round" class="cls-3" data-round="second-round" d="M318.54,3140.92c0,523.52,223.04,523.52,223.04,1046.94s1550.35,523.52,1550.35,1046.93c0,0,0-523.52,0,0,0,0,0,523.52,0,0s74.39-523.52,74.39-1046.94S318.54,3664.33,318.54,3140.91"/>
+          <text x="1335" y="4170" class="round-label" data-round="second-round" id="second-round-hed" text-anchor="middle" font-size="7.5em" font-weight="bold">Second Round</text>
+          <text x="1335" y="4320" class="round-label" data-round="second-round" id="second-round-desc" text-anchor="middle" font-family="PT Sans Caption, sans-serif" font-size="5.5em" font-style="italic">306 props per game</text>
+          <path id="sweet-16" class="cls-4" data-round="sweet-16" d="M2166.19,4187.86c0-523.52,223.04-523.52,223.04-1046.94S207.08,2617.4,207.08,2093.87s0,523.52,0,0,0,523.52,0,0h0c0,523.52,0-523.52,0,0s0-523.52,0,0,111.46,523.52,111.46,1046.94,1847.65,523.52,1847.65,1046.94"/>
+          <text x="1335" y="3100" class="round-label" data-round="sweet-16" id="sweet-16-hed" text-anchor="middle" font-size="8em" font-weight="bold">Sweet 16</text>
+          <text x="1335" y="3260" class="round-label" data-round="sweet-16" id="sweet-16-desc" text-anchor="middle" font-family="PT Sans Caption, sans-serif" font-size="6em" font-style="italic">390 props per game</text>
+          <path id="elite-eight" class="cls-5" data-round="elite-eight" d="M2389.1,3140.92c0-523.52,111.46-523.52,111.46-1046.94S0,1570.46,0,1046.93s0,523.52,0,0h0c0,523.52,207.08,523.52,207.08,1046.94s2182.15,523.53,2182.15,1046.94"/>
+          <text x="1335" y="2040" class="round-label" data-round="elite-eight" id="elite-eight-hed" text-anchor="middle" font-size="8em" font-weight="bold">Elite Eight</text>
+          <text x="1335" y="2200" class="round-label" data-round="elite-eight" id="elite-eight-desc" text-anchor="middle" font-family="PT Sans Caption, sans-serif" font-size="6em" font-style="italic">432 props per game</text>
+          <path id="final-four" class="cls-6" data-round="final-four" d="M2500.69,2093.88c0-523.53,207.08-523.53,207.08-1046.94S84.94,523.42,84.94,0h0C84.94,523.52,0,523.52,0,1046.94s2500.69,523.52,2500.69,1046.94"/>
+          <text x="1335" y="970" class="round-label" data-round="final-four" id="final-four-hed" text-anchor="middle" font-size="9em" font-weight="bold" fill="white">Final Four</text>
+          <text x="1335" y="1140" class="round-label" data-round="final-four" id="final-four-desc" text-anchor="middle" font-family="PT Sans Caption, sans-serif" font-size="6.5em" font-style="italic" fill="white">510 props per game</text>
+          <path id="national-championship" class="cls-5" data-round="national-championship" d="M2707.77,1046.94c0-523.52-84.94-523.52-84.94-1046.94H84.95c-.01,523.53,2622.82,523.53,2622.82,1046.94"/>
+          <text x="1335" y="210" class="round-label" data-round="national-championship" id="national-championship-hed" text-anchor="middle" font-size="8em" font-weight="bold">Championship</text>
+          <text x="1335" y="370" class="round-label" data-round="national-championship" id="national-championship-desc" text-anchor="middle" font-family="PT Sans Caption, sans-serif" font-size="6em" font-style="italic">478 props</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- step text -->
+    <div class="steps">
+      <div class="step" data-round="first-four"><div class="step-content">
+        <p>The Povich Center and Howard Center identified about <span class="first-four-stat">900 player props</span> during the First Four round of the 2026 men's college basketball tournament — an average of <span class="first-four-stat">224 available bets per game.</span></p>
+      </div></div>
+      <div class="step" data-round="first-round"><div class="step-content">
+        <p>The same platforms offered <span class="first-round-stat">nearly 9,000</span> player prop bets in the first round of the NCAA tournament, or about <span class="first-round-stat">278 props per game</span>.</p>
+      </div></div>
+      <div class="step" data-round="second-round"><div class="step-content">
+        <p>That figure climbed to an average of <span class="second-round-stat">306 prop bets per game</span> during the second round.</p>
+      </div></div>
+      <div class="step" data-round="sweet-16"><div class="step-content">
+        <p>By the Sweet 16, platforms were offering an average of <span class="sweet-16-stat">390 player prop bets per game</span>.</p>
+      </div></div>
+      <div class="step" data-round="elite-eight"><div class="step-content">
+        <p>The Elite Eight featured an average of <span class="elite-eight-stat">432 player props</span> per game.</p>
+      </div></div>
+      <div class="step" data-round="final-four"><div class="step-content">
+        <p>And in the Final Four, the number of available prop bets <span class="final-four-stat">surpassed 500 per game</span>.</p>
+      </div></div>
+      <div class="step" data-round="national-championship"><div class="step-content">
+        <p>Platforms then closed out the tournament by offering a combined <span class="national-championship-stat">478 player props</span> on the national championship game between Michigan and UConn.</p>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- FINDINGS -->
+  <hr class="section-divider" id="findings" />
+  <div class="section section-pb">
+    <p class="section-label">Findings</p>
+    <h2 class="section-title section-title-spaced">The scale of college prop betting during March Madness</h2>
+    <div class="findings-grid">
+      <div class="finding-block">
+        <div class="finding-num">21,053</div>
+        <div class="finding-desc">Unique opportunities to risk money on individual college athletes identified across sportsbooks and daily fantasy platforms during the 2026 men's NCAA tournament.</div>
+      </div>
+      <div class="finding-block">
+        <div class="finding-num">163</div>
+        <div class="finding-desc">Pick 'em props for every 100 offered by sportsbooks. The four major pick 'em DFS sites combined offered more prop-like opportunities than the top six sportsbooks combined.</div>
+      </div>
+      <div class="finding-block">
+        <div class="finding-num">50+</div>
+        <div class="finding-desc">College athletes who appeared on pick 'em sites but never appeared in the top sportsbooks — players who would not have been "bettable" under any regulated framework.</div>
+      </div>
+      <div class="finding-block">
+        <div class="finding-num">38%</div>
+        <div class="finding-desc">Share of those 21,000+ opportunities that fell under state restrictions — even though 70% of states with legal sports gambling restrict college player props.</div>
+      </div>
+      <div class="finding-block">
+        <div class="finding-num">129M</div>
+        <div class="finding-desc">Americans who cannot bet on individual college athletes through regulated sportsbooks but can still do so via DFS platforms, including 82 million in states with no legal sports betting at all.</div>
+      </div>
+      <div class="finding-block">
+        <div class="finding-num">510</div>
+        <div class="finding-desc">Prop lines per game by the Final Four — up from 224 in the First Four, as teams were eliminated and bettor attention concentrated on fewer players.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- METHODOLOGY -->
+  <hr class="section-divider" id="methodology" />
+  <section class="section-white">
+    <div class="section section-narrow">
+      <p class="section-label">How we got there</p>
+      <h2 class="section-title">Methodology</h2>
+
+      <p class="body-p">
+        There is no public database of college player prop lines. Sportsbooks and daily fantasy platforms post them in real time and pull them at tip-off. No one compiles them. No regulator publishes them. If you want to know how many props were offered on a given player during March Madness, you have to scrape them yourself while they're still live.
+      </p>
+      <p class="body-p body-p-last">
+        The full project pulled lines from several sources. The public repo focuses on one provider, RotoWire — both its public and paid feeds — plus the ESPN schedule for game context. The same pipeline folds in any other source unchanged. The state eligibility analysis and the harassment reporting use additional inputs covered in <a href="https://github.com/catelizabethmurphy/ire26/blob/main/METHODOLOGY.md" target="_blank" rel="noopener" class="red-link">METHODOLOGY.md</a>. This section walks the loading and cleaning.
+      </p>
+
+      <div class="method-step">
+        <div class="step-num">01</div>
+        <div class="step-body">
+          <h3 class="step-title">Scraping the sources</h3>
+          <p>Everything in <code>scrapers/</code> is a Python script driving Selenium with headless Chrome. Selenium because these are heavy JavaScript pages — lines load in after the page does, cookie banners have to be dismissed, content only appears after scrolling. A plain <code>requests</code> grab gets you almost nothing.</p>
+          <p class="step-p">What's in the public repo:</p>
+          <ul class="method-list">
+            <li><code>espn_schedule_scraper.py</code> — tournament schedule, matchups, seeds, regions, tip times, point spreads, over/unders. The backbone everything else hangs off of.</li>
+            <li><code>rotowire_public_data_scraper.py</code> — RotoWire's public props page, which aggregates lines across several sportsbooks.</li>
+            <li><code>rotowire_subscription_data_downloader.py</code> — the paid feed. The only source that reaches DFS apps like PrizePicks, Underdog, Sleeper, and Pick6, and the only scraper that logs in. Reads credentials from a <code>.env</code> file that's never committed.</li>
+          </ul>
+          <p class="step-p">The full reporting ran the same kind of scraper against DraftKings, BettingPros, ESPN box scores, and team rosters. Those scrapers are left out of the minimal demo; adding a source is just another script feeding the same standardization functions.</p>
+          <div class="step-tags">
+            <span class="tag">Python</span>
+            <span class="tag">Selenium</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="method-step">
+        <div class="step-num">02</div>
+        <div class="step-body">
+          <h3 class="step-title">Scraping on a schedule</h3>
+          <p>I scraped several times a day because of how these markets behave. Books post props as they create them, on their own schedule, and pull them when a game tips off — sometimes earlier. A prop I didn't catch before it came down was gone. Doing that by hand for three weeks wasn't realistic, so I automated it with GitHub Actions: scheduled workflows that spin up a fresh machine, run a scraper, and commit the new data file back into the repo with a timestamp.</p>
+          <div class="step-tags">
+            <span class="tag">GitHub Actions</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="method-step">
+        <div class="step-num">03</div>
+        <div class="step-body">
+          <h3 class="step-title">Standardizing the messy fields</h3>
+          <p>This is mostly a cleaning project. ESPN's spread data calls UConn <code>CONN</code>. RotoWire calls them <code>Connecticut</code>. The bracket says <code>UConn</code>. One book lists a market as <code>Reb+Ast</code>, another as <code>Rebounds + Assists</code>. A player shows up as <code>A.J. Dybantsa</code> in one place and <code>AJ Dybantsa</code> in another. Until all of that agrees, nothing lines up and nothing joins.</p>
+          <p class="step-p"><code>sample_analysis.Rmd</code> handles this with a set of small functions run over every source before any combining:</p>
+          <ul class="method-list">
+            <li><code>standardize_team_names()</code> and <code>match_school_abbreviations()</code> — map team variants and ESPN abbreviations to one canonical name. Explicit lists, not fuzzy matching, so every rule is something an editor can read and check.</li>
+            <li><code>standardize_player_names()</code> — strips suffixes like Jr. and III, removes accents and quoted nicknames, and patches known cross-site mismatches by hand (Solomon Ball vs. Solo Ball, for example).</li>
+            <li><code>standardize_market_name()</code> — collapses every way books write a bet type into one vocabulary. <code>pts</code> becomes <code>points</code>, <code>3pt made</code> becomes <code>three_pointers_made</code>.</li>
+            <li><code>classify_platform_type()</code> — tags each operator as a sportsbook, DFS app, or other. The split between regulated sportsbooks and DFS apps is central to the reporting.</li>
+          </ul>
+          <div class="step-tags">
+            <span class="tag">R</span>
+            <span class="tag">tidyverse</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="method-step">
+        <div class="step-num">04</div>
+        <div class="step-body">
+          <h3 class="step-title">Building the join key</h3>
+          <p>The goal is a single tidy table where one row is one prop line from one operator. The key that ties a prop to a game is a sorted team pairing:</p>
+          <pre class="code-block">game = paste(pmin(team_a, team_b), "vs.", pmax(team_a, team_b))</pre>
+          <p class="step-p">Sorting the two teams alphabetically means <code>Duke @ Siena</code> and <code>Siena vs. Duke</code> both resolve to <code>Duke vs. Siena</code> no matter the home/away order or which scrape they came from. With that key in place, the props get joined to the ESPN schedule for seeds, region, round, and the spread.</p>
+          <p class="step-p">RotoWire already tells me each player's team and opponent, so its rows drop into a game on their own. But the moment you add a source that gives only a name and a bet with no team — DraftKings and BettingPros, in the full project, both do exactly that — a roster lookup becomes essential. A game is keyed on its pair of teams, so a name with no team can't be placed without first looking up the team.</p>
+        </div>
+      </div>
+
+      <div class="method-step method-step-last">
+        <div class="step-num">05</div>
+        <div class="step-body">
+          <h3 class="step-title">Merging into one table</h3>
+          <p>RotoWire stores each sportsbook in its own column, so I pivot those into one row per book before combining. Then I dedupe on a <code>prop_id</code> built from player, book, market, seeds, teams, and date. The same prop scraped from several runs collapses to one row, but I keep a count (<code>number_times_identified</code>) and source list (<code>data_source</code>) so every line is traceable to where it came from.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="section-divider" id="data-notes" />
+  <section class="section-white">
+    <div class="section section-narrow">
+      <p class="section-label">Caveats &amp; disclosure</p>
+      <h2 class="section-title">Data notes</h2>
+
+      <div class="method-step">
+        <div class="step-num">01</div>
+        <div class="step-body">
+          <h3 class="step-title">A note on AI assistance</h3>
+          <p>I used AI coding tools to help build and debug the Python scrapers — wiring up the headless browser, dismissing cookie banners, handling lazy-loaded content, and writing the site-specific parsers each source needed. That means you can too. But the reporting logic, the standardization rules, the analysis, and every editorial judgment are mine, and I spot-checked the scraped output by hand against the live sites.</p>
+        </div>
+      </div>
+
+      <div class="method-step method-step-last">
+        <div class="step-num">02</div>
+        <div class="step-body">
+          <h3 class="step-title">What the data misses</h3>
+          <p>This is not every prop that was offered. It's a floor, and it undercounts for two reasons.</p>
+          <p class="step-p">First, takedowns. Books pull props once a game starts, so anything posted and removed between two of my scrapes — or only put up after my last run before tip-off — never got captured. The scraping window and the betting window didn't line up perfectly, and the gap is lost props.</p>
+          <p class="step-p">Second, uneven coverage across sites. The public version here is RotoWire-only: the public feed is sportsbook-only, while the paid feed is what brings in the DFS apps that drove much of the action on college players. But RotoWire relays only the lines it chooses to, so even with both feeds the DFS apps are undercounted — scraping them directly would surface more. The full project added more sources to chip away at this, but never closed the gap completely.</p>
+          <p class="step-p">Treat the counts as a minimum, not a complete tally.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="section-divider" id="extend" />
+  <section class="section-white">
+    <div class="section section-narrow">
+      <p class="section-label">Where to take this</p>
+      <h2 class="section-title">How to go further</h2>
+
+      <p class="body-p body-p-last">
+        The cleaning step is deliberately a starting point. The <code>game</code> key and <code>prop_id</code> are built so you can keep joining things onto the table, and the standardization functions take any new source. Here's where I'd point a reporter who wanted to push past this one-game, RotoWire-only sample.
+      </p>
+
+      <div class="method-step">
+        <div class="step-num">01</div>
+        <div class="step-body">
+          <h3 class="step-title">Add more betting sources</h3>
+          <p>RotoWire is one provider. The full project also scraped <strong>DraftKings</strong> (two ways — a top-props list and a game-by-game walk) and <strong>BettingPros</strong> (opening lines and current odds across many books at once). Each is just another scraper feeding the same standardization functions, then stacked onto the pile and deduped on <code>prop_id</code>, so a line seen on three sites collapses to one row with <code>number_times_identified = 3</code>.</p>
+          <p class="step-p">The bigger prize is the <strong>DFS apps themselves</strong> — PrizePicks, Underdog, Sleeper, Pick6, Fliff. RotoWire's paid feed relays some of their lines, but only the ones it chooses to carry and without each app's full board or pricing. Scraping the apps directly is the single biggest way to close the coverage gap, because they're where most of the action on college players lives — and, as the eligibility strand shows, where it reaches the most and youngest people.</p>
+        </div>
+      </div>
+
+      <div class="method-step">
+        <div class="step-num">02</div>
+        <div class="step-body">
+          <h3 class="step-title">Add rosters to place name-only bets</h3>
+          <p>RotoWire hands you each player's team, so its rows drop into a game on their own. But the moment you add a source that gives only a name and a bet with no team — DraftKings and BettingPros both do — you need a roster as a bridge. A game is keyed on its pair of teams, so a name with no team can't be placed without first looking the name up: roster → team → game. The full project scrapes each school's official roster page for exactly this, which doubles as a cross-check that every propped player is really on a tournament roster. (Common names still collide, so the join needs spot-checking.)</p>
+        </div>
+      </div>
+
+      <div class="method-step">
+        <div class="step-num">03</div>
+        <div class="step-body">
+          <h3 class="step-title">Add box scores to grade the bets</h3>
+          <p>The clean table tells you a bet existed; it doesn't tell you how it resolved. ESPN's public game-summary API returns every player's full stat line by game ID. Join that on the <code>game</code> and player keys and you can <strong>grade</strong> every prop over or under — the most obvious next join, since this cleaning step carries only <code>player_minutes</code>.</p>
+        </div>
+      </div>
+
+      <div class="method-step">
+        <div class="step-num">04</div>
+        <div class="step-body">
+          <h3 class="step-title">Social handles and the harassment reporting</h3>
+          <p>The roster pages do double duty. Alongside player names, schools link each player's <strong>social accounts</strong> — Instagram, X, TikTok, Facebook — right on the roster profile, so these are real, school-listed handles rather than anything I had to guess at. Those handles are the first link in the harassment side of this reporting: the chain runs <strong>handle → the player's posts → the comments on them</strong>, which is how a specific abusive comment gets tied back to the specific (often teenage) athlete it targeted. The comment data isn't in this repo, but the handle collection is where that thread starts. If you take this on, be deliberate about commenter and victim data.</p>
+        </div>
+      </div>
+
+      <div class="method-step method-step-last">
+        <div class="step-num">05</div>
+        <div class="step-body">
+          <h3 class="step-title">Patterns worth chasing</h3>
+          <p>A few questions the data is built to answer that I noticed while reporting but haven't fully pinned down — good places to start if you pick this up:</p>
+          <ul class="method-list">
+            <li><strong>Does March Madness look different from the regular season?</strong> The tournament is a compressed, high-attention window. Pointing the same scrapers at regular-season college games would show whether the sheer volume — and the DFS-vs-sportsbook split — hold up once the spotlight is off.</li>
+            <li><strong>Does tip time change how many props a game draws?</strong> Every scrape is timestamped and the schedule carries each game's tip time, so you can line the two up. My experience during the regular season was that games get more betting attention when they are the only game on — random 10 p.m. West Coast games would have a bunch of props available, whereas a similar mid-major game at 4 p.m. on a Tuesday wouldn't.</li>
+            <li><strong>How did a line move before tip?</strong> RotoWire has a separate dataset that identifies line movements, if you're into that sort of thing.</li>
+            <li><strong>How much did operators disagree?</strong> With one row per operator, compare books and apps on the same player-stat line and flag where they diverge most.</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="section-divider" id="lessons" />
+  <section class="section-white">
+    <div class="section section-narrow">
+      <p class="section-label">Looking back</p>
+      <h2 class="section-title">Lessons learned: what I'd do differently</h2>
+
+      <p class="body-p">A few things I'd change if I ran this again — most of them about reach, not method.</p>
+
+      <ul class="method-list">
+        <li><strong>Dig deeper into DFS sites that weren't captured by this analysis.</strong> I started this work long before March Madness, spending months on what to scrape, how to clean it, how to merge it, how to contextualize it. Even so, there are sites I learned about just a little too late to incorporate.</li>
+        <li><strong>Look more at prediction markets.</strong> Prediction markets are regulated differently from both DFS and sports betting, and while they didn't offer the same volume of trading opportunities on individual college players, college players would occasionally pop up on those platforms as well.</li>
+        <li><strong>Experiment more with women's college props.</strong> These were far harder to track — they rarely appeared on regulated sportsbooks and only sporadically on more obscure DFS sites. I still wish I had captured more data on this.</li>
+        <li><strong>Analyze college football data.</strong> This was a timing thing; the project ran on a spring semester. I've heard anecdotally that college football props are as ridiculous as the college basketball ones, if not more so.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="resources">
+    <div class="section">
+      <p class="section-label">Downloads &amp; links</p>
+      <h2 class="section-title">Everything from this session</h2>
+      <div class="resources-grid">
+        <div class="resource-card">
+          <div class="resource-type">Code</div>
+          <div class="resource-title">Demo repo (IRE 2026)</div>
+          <p class="resource-desc">Scrapers, R analysis notebooks, and a sample game. Full methodology in plain English. Full dataset not included.</p>
+          <a class="resource-link" href="https://github.com/catelizabethmurphy/ire26" target="_blank" rel="noopener">View on GitHub</a>
+        </div>
+        <div class="resource-card">
+          <div class="resource-type">Document</div>
+          <div class="resource-title">Methodology</div>
+          <p class="resource-desc">Every step from scraping to cleaning to classification, with honest notes on what the dataset undercounts.</p>
+          <a class="resource-link" href="https://github.com/catelizabethmurphy/ire26/blob/main/METHODOLOGY.md" target="_blank" rel="noopener">Read the methodology</a>
+        </div>
+        <div class="resource-card">
+          <div class="resource-type">Slides</div>
+          <div class="resource-title">IRE 2026 presentation</div>
+          <p class="resource-desc">Slides from this session. Coming soon.</p>
+          <a class="resource-link" href="#" style="opacity:0.4;pointer-events:none;">Coming soon</a>
+        </div>
+        <div class="resource-card">
+          <div class="resource-type">Contact</div>
+          <div class="resource-title">Get in touch</div>
+          <p class="resource-desc">Questions about the data, the method, or the reporting? Want to talk about replicating this for another sport?</p>
+          <a class="resource-link" href="https://catelizabethmurphy.github.io" target="_blank" rel="noopener">Portfolio &amp; contact</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-inner">
+      <p class="footer-credit">Built by <a href="https://catelizabethmurphy.github.io" target="_blank" rel="noopener">Cat Murphy</a> · IRE 2026</p>
+      <p class="footer-orgs">Shirley Povich Center for Sports Journalism &amp; Howard Center for Investigative Journalism · University of Maryland</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="main.js"></script>
+
+</body>
+</html>

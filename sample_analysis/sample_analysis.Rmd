@@ -1,0 +1,369 @@
+---
+title: "March Madness 2026: Player Prop Betting — Loading & Cleaning"
+subtitle: "The data pipeline behind the reporting — IRE 2026"
+author: "Cat Murphy"
+date: "June 19, 2026"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+    code_folding: show
+    theme: cosmo
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+# What this document is
+
+This is the **loading-and-cleaning pipeline** behind my March Madness player prop betting reporting. A player prop is a bet on one player's stat line — "Cameron Boozer over 22.5 points," for example. During the tournament, thousands of opportunities to risk money on individual college players were made available. None of that data is downloadable, though, so I scraped it; and every site describes the same players, teams, and bets differently, so most of the work is **reconciling** them into one tidy table where one row is one prop line from one operator.
+
+**This public version runs on a one-game sample of prop bets during March Madness** **(Duke vs. Siena, 1st Round)**. There are countless ways to expand this out, though, and I discuss this more in [`../METHODOLOGY.md`](../METHODOLOGY.md).
+
+This version also only includes one primary source of betting data: RotoWire. Now, RotoWire offers several iterations of this data; one is fully public and scrapable, others require paid subscriptions. To illustrate the discrepancies, my sample data folder includes both public and paid data. That folder also includes the ESPN schedule data for the game between Duke and Siena, as this includes information that the RotoWire data does not: seeding, location, accurate times, etc. This is less important for a one-game analysis, but at scale having consistent game information is crucial for merging different datasets.
+
+# Packages
+
+```{r packages}
+library(dplyr)
+library(janitor)
+library(tidyverse)
+library(lubridate)
+library(rvest)
+library(stringr)
+library(stringi)
+library(readr)
+library(purrr)
+library(fs)
+library(hms)
+```
+
+# What we're looking at
+
+```{r data_exploration}
+schedules <- read_csv("sample_data/raw_espn_schedule_duke_siena.csv", show_col_types = FALSE)
+
+scraped_rotowire_props <- read_csv("sample_data/raw_rotowire_public_data_duke_siena.csv", show_col_types = FALSE)
+
+subscription_rotowire_props <- read_csv("sample_data/raw_rotowire_subscription_data_duke_siena.csv", show_col_types = FALSE)
+```
+
+# Standardization functions
+
+As you can see from the data we just looked at, we have a lot of duplicate rows. However, many of these rows aren't identical — usually because of how the team is written (SIE vs. Siena), how the player's name is spelled (A.J. vs. AJ) or how the prop market is referred to (pts vs. points). For that, we're going to write some standardization functions so that we can eliminate those duplicates later. We're also going to create unique IDs for each prop and classify what type of platform it was offered on.
+
+### Standardize team names
+
+```{r standardize_team_names}
+# function to standardize team names in rotowire props and espn schedules
+standardize_team_names <- function(team_name) {
+  team_name <- str_remove_all(team_name, "@")
+  return(team_name)
+}
+```
+
+### Standardize team abbreviations
+
+```{r standardize_team_abbreviations}
+# function to standardize team abbreviations in espn spreads
+match_school_abbreviations <- function(abbreviation) {
+  case_when(
+    abbreviation == "DUKE" ~ "Duke",
+    abbreviation == "SIE" ~ "Siena")
+}
+```
+
+### Standardize player names
+
+```{r standardize_player_names}
+standardize_player_names <- function(player_name) {
+  player_name <- str_remove_all(player_name, ",? Jr\\.?")
+  player_name <- str_remove_all(player_name, " II(I?)")
+  player_name <- str_remove_all(player_name, "\\.")
+  player_name <- stri_trans_general(player_name, "Latin-ASCII")
+  player_name <- str_remove_all(player_name, "\".*?\"")
+  player_name <- str_squish(player_name)
+  return(player_name)
+}
+```
+
+### Standardize prop market names
+
+```{r standardize_market_names}
+standardize_market_name <- function(market_name) {
+  market_name <- str_remove_all(market_name, "Over/Under")
+  market_name <- str_to_lower(market_name)
+  market_name <- str_squish(market_name)
+  market_name <- str_replace_all(market_name, "\\s?\\+\\s?", "_")
+  market_name <- str_replace_all(market_name, "pts", "points")
+  market_name <- str_replace_all(market_name, "3pt made", "three_pointers_made")
+  market_name <- str_replace_all(market_name, "reb(?![A-Za-z])", "rebounds")
+  market_name <- str_replace_all(market_name, "ast", "assists")
+  market_name <- str_replace_all(market_name, "blk", "blocks")
+  market_name <- str_replace_all(market_name, "stl", "steals")
+  market_name <- str_replace_all(market_name, "-", "_")
+  market_name <- str_replace_all(market_name, "\\s", "_")
+  return(market_name)
+}
+```
+
+### Classify platform types
+
+```{r define_platform_type}
+classify_platform_type <- function(platform_name) {
+  case_when(
+    platform_name == "betmgm" | platform_name == "thescore" | platform_name == "fanduel" | platform_name == "draftkings" | platform_name == "hardrock" | platform_name == "caesars" | platform_name == "sugarhouse" | platform_name == "betrivers" | platform_name == "partycasino" ~ "sportsbook",
+    platform_name == "sleeper" | platform_name == "prizepicks" | platform_name == "underdog" | platform_name == "pick6" | platform_name == "fliff" ~ "dfs",
+    TRUE ~ "other"
+  )
+}
+```
+
+### Standardize unique prop ID
+
+```{r standardize_ids}
+standardize_id <- function(prop_id) {
+  prop_id <- str_replace_all(prop_id, "\\s+", "_")
+  prop_id <- str_remove_all(prop_id, "\\.")
+  prop_id <- str_remove_all(prop_id, "'")
+  prop_id <- str_remove_all(prop_id, "-")
+  prop_id <- str_remove_all(prop_id, ":")
+  prop_id <- str_remove_all(prop_id, "\\(")
+  prop_id <- str_remove_all(prop_id, "\\)")
+  return(prop_id)
+}
+```
+
+# Clean the schedule
+
+```{r load_espn_schedules}
+# load and clean schedules
+schedules <- read_csv("sample_data/raw_espn_schedule_duke_siena.csv", show_col_types = FALSE) |>
+  clean_names() |>
+
+  separate(game_date, into = c("game_day", "game_date", "game_year"), sep = ", ") |>
+
+  mutate(game_date = mdy(paste(game_date, game_year, sep = "-"))) |>
+
+  separate(venue, into = c("venue", "city", "state"), sep = ", ") |>
+
+  mutate(game = paste(pmin(home_team, away_team), "vs.", pmax(home_team, away_team)),
+         favored_team = match_school_abbreviations(spread_team)
+         ) |>
+
+  rename(game_points_spread = spread_line) |>
+
+  select(game, game_date, game_time, tournament, round, region, away_team, away_team_seed, home_team, home_team_seed, venue, city, state, tv_network, game_points_spread, favored_team) |>
+
+  distinct(game, .keep_all = TRUE)
+```
+
+# Load and clean the prop feeds
+
+### RotoWire paid (subscription) feed — long shape, and the home of the DFS apps
+
+```{r subscription_rotowire_props}
+subscription_rotowire_props <- read_csv("sample_data/raw_rotowire_subscription_data_duke_siena.csv", show_col_types = FALSE) |>
+  clean_names() |>
+  distinct() |>
+  mutate(row_id = row_number(),
+         data_source = "rotowire_subscription",
+         file_date = as.Date(str_extract(file_name, "\\d{4}-\\d{2}-\\d{2}"))) |>
+  select(row_id, data_source, file_date, player, team, opponent, market_name, site, line, file_name) |>
+  rename(player_name = player,
+         player_team = team,
+         opponent_team = opponent,
+         prop_platform = site,
+         prop_market = market_name,
+         prop_line = line) |>
+  mutate(prop_platform = str_remove_all(prop_platform, "-sb"),
+         across(c(player_team, opponent_team), \(x) str_remove_all(x, "@")),
+         prop_market = standardize_market_name(prop_market),
+         prop_platform_type = classify_platform_type(prop_platform),
+         player_name = standardize_player_names(player_name),
+         player_team = standardize_team_names(player_team),
+         opponent_team = standardize_team_names(opponent_team),
+         game = paste(pmin(player_team, opponent_team), "vs.", pmax(player_team, opponent_team))) |>
+
+  left_join(schedules, join_by(game)) |>
+
+  filter(tournament == "NCAA Tournament") |>
+
+  mutate(player_team_seed = case_when(
+    player_team == home_team ~ home_team_seed,
+    player_team == away_team ~ away_team_seed,
+    TRUE ~ NA
+  ),
+  opponent_team_seed = case_when(
+    opponent_team == home_team ~ home_team_seed,
+    opponent_team == away_team ~ away_team_seed,
+    TRUE ~ NA
+  ),
+  player_team_favored = case_when(
+    player_team == favored_team ~ TRUE,
+    opponent_team == favored_team ~ FALSE,
+    TRUE ~ NA
+  )) |>
+
+  mutate(prop_id = str_squish(str_to_lower(paste(player_name, prop_platform, prop_market, "no", player_team_seed, player_team, "vs", "no", opponent_team_seed, opponent_team, game_date, sep = "_"))),
+         prop_id = standardize_id(prop_id)) |>
+
+  select(
+    row_id,
+    data_source,
+    file_name,
+    file_date,
+    tournament,
+    round,
+    region,
+    game,
+    game_date,
+    player_name,
+    player_team,
+    player_team_seed,
+    opponent_team,
+    opponent_team_seed,
+    game_points_spread,
+    favored_team,
+    player_team_favored,
+    prop_platform,
+    prop_platform_type,
+    prop_market,
+    prop_line,
+    prop_id)
+
+subscription_rotowire_props |>
+  select(player_name, prop_platform, prop_platform_type, prop_market, prop_line, prop_id) |>
+  head(6)
+```
+
+### RotoWire public (scraped) feed — wide shape, pivoted to one row per book
+
+```{r scraped_rotowire_props}
+scraped_rotowire_props <- read_csv("sample_data/raw_rotowire_public_data_duke_siena.csv", show_col_types = FALSE) |>
+  clean_names() |>
+  select(-scrape_date, -scrape_time) |>
+  mutate(row_id = row_number(),
+         data_source = "scraped_rotowire",
+         file_date = as.Date(str_extract(file_name, "\\d{4}-\\d{2}-\\d{2}"))) |>
+  rename(player_team = team,
+         opponent_team = opponent,
+         prop_market = stat_type,
+         betmgm_line = mgm_line) |>
+  mutate(prop_market = standardize_market_name(prop_market),
+         player_name = standardize_player_names(player_name),
+         across(c(player_team, opponent_team), \(x) standardize_team_names(x)),
+         game = paste(pmin(player_team, opponent_team), "vs.", pmax(player_team, opponent_team))) |>
+  left_join(schedules, join_by(game)) |>
+
+  filter(tournament == "NCAA Tournament") |>
+
+  mutate(player_team_seed = case_when(
+    player_team == home_team ~ home_team_seed,
+    player_team == away_team ~ away_team_seed,
+    TRUE ~ NA
+  ),
+  opponent_team_seed = case_when(
+    opponent_team == home_team ~ home_team_seed,
+    opponent_team == away_team ~ away_team_seed,
+    TRUE ~ NA
+  ),
+  player_team_favored = case_when(
+    player_team == favored_team ~ TRUE,
+    opponent_team == favored_team ~ FALSE,
+    TRUE ~ NA
+  )) |>
+
+  pivot_longer(
+    cols = ends_with("_line"),
+    names_to = "prop_platform",
+    values_to = "prop_line",
+    names_transform = \(x) str_remove(x, "_line")) |>
+
+  filter(!is.na(prop_line)) |>
+  mutate(prop_platform_type = classify_platform_type(prop_platform),
+         prop_id = str_squish(str_to_lower(paste(player_name, prop_platform, prop_market, "no", player_team_seed, player_team, "vs", "no", opponent_team_seed, opponent_team, game_date, sep = "_"))),
+         prop_id = standardize_id(prop_id)) |>
+
+  select(
+    row_id,
+    data_source,
+    file_name,
+    file_date,
+    tournament,
+    round,
+    region,
+    game,
+    game_date,
+    player_name,
+    player_team,
+    player_team_seed,
+    opponent_team,
+    opponent_team_seed,
+    game_points_spread,
+    favored_team,
+    player_team_favored,
+    prop_platform,
+    prop_platform_type,
+    prop_market,
+    prop_line,
+    prop_id)
+
+scraped_rotowire_props |>
+  select(player_name, prop_platform, prop_platform_type, prop_market, prop_line, prop_id) |>
+  head(6)
+```
+
+# Bind into one table
+
+Stack the feeds, then collapse on `prop_id` so the same bet seen in more than one feed (or more than one scrape) becomes one row — keeping a count of how many times it was identified (`number_times_identified`) and which sources and files saw it, so any line is traceable.
+
+```{r bind_rows}
+all_props <- bind_rows(subscription_rotowire_props, scraped_rotowire_props) |>
+  group_by(prop_id) |>
+  mutate(number_times_identified = n(),
+         file_date = paste(unique(file_date), collapse = ", "),
+         data_source = paste(unique(data_source), collapse = ", "),
+         file_name = paste(unique(file_name), collapse = ", ")) |>
+  arrange(prop_id, desc(file_date)) |>
+  slice_head(n = 1) |>
+  ungroup() |>
+  select(
+    tournament,
+    round,
+    game,
+    game_date,
+    player_name,
+    player_team,
+    player_team_seed,
+    opponent_team,
+    opponent_team_seed,
+    game_points_spread,
+    favored_team,
+    player_team_favored,
+    prop_platform,
+    prop_platform_type,
+    prop_market,
+    prop_line,
+    prop_id,
+    number_times_identified,
+    data_source,
+    file_date)
+
+all_props
+```
+
+------------------------------------------------------------------------
+
+# Reproducibility & disclosure
+
+-   The loading and cleaning above runs on the files in `sample_data/` — no credentials, no network. Knit this `.Rmd` to reproduce it on the sample game.
+-   The scrapers that produced these files live in `../scrapers/`. The standardization functions are source-agnostic — point the same pattern at any other book to extend the dataset.
+-   This notebook stops at the cleaned table; the reporting questions it answered are listed in [`../METHODOLOGY.md`](../METHODOLOGY.md). The full corpus isn't shipped here.
+-   **AI assistance, disclosed:** I used AI coding tools to help build and debug the Python scrapers (cookie banners, lazy-loaded content, the site-specific parsers each source needed). The reporting logic, the standardization rules, the analysis, and every editorial judgment here are mine, and the scraped output was spot-checked by hand against the live sites.
+
+See [`../METHODOLOGY.md`](../METHODOLOGY.md) for the prose companion to this notebook.
