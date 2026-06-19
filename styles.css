@@ -235,7 +235,7 @@
       display: flex;
       align-items: center;
       width: 100%;
-      max-width: 400px;
+      max-width: 300px;
       margin: 0 auto;
       padding: 1rem 0;
       box-sizing: border-box;
@@ -243,7 +243,7 @@
 
     .step-content p {
       font-family: 'PT Sans', sans-serif;
-      font-size: 1.4rem;
+      font-size: 1.25rem;
       line-height: 1.75;
       color: var(--gray-text);
     }
@@ -276,7 +276,7 @@
 
     .resources-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 1.25rem;
       margin-top: 0.5rem;
     }
@@ -294,7 +294,7 @@
 
     .resource-type {
       font-family: 'PT Sans Caption', sans-serif;
-      font-size: 0.8rem;
+      font-size: 1rem;
       font-weight: 700;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -304,13 +304,13 @@
     .resource-title {
       font-family: 'PT Sans', sans-serif;
       font-weight: 700;
-      font-size: 1rem;
+      font-size: 1.25rem;
       color: var(--black);
       line-height: 1.2;
     }
 
     .resource-desc {
-      font-size: 0.875rem;
+      font-size: 1rem;
       color: var(--gray-mid);
       line-height: 1.55;
       flex: 1;
@@ -322,7 +322,7 @@
       gap: 0.3rem;
       font-family: 'PT Sans', sans-serif;
       font-weight: 700;
-      font-size: 0.8rem;
+      font-size: 1rem;
       color: var(--red-dark);
       text-decoration: none;
       margin-top: 0.5rem;
@@ -387,14 +387,14 @@
     .step-title {
       font-family: 'PT Sans', sans-serif;
       font-weight: 700;
-      font-size: 1.05rem;
+      font-size: 1.3rem;
       color: var(--black);
       margin-bottom: 0.6rem;
       line-height: 1.25;
     }
 
     .step-body p {
-      font-size: 1.1rem;
+      font-size: 1.25rem;
       color: var(--gray-text);
       line-height: 1.7;
     }
@@ -428,7 +428,7 @@
     }
 
     .method-list li {
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       color: var(--gray-text);
       line-height: 1.7;
     }
@@ -547,7 +547,7 @@
 a.red-link { color: var(--red); }
 
 .section-title-spaced { margin-bottom: 2rem; }
-.step-p { margin-top: 0.75rem; }
+.step-p { margin-top: 0.75rem; font-size: 1.25rem; }
 .method-step-last { border-bottom: none; }
 
     /* ── MOBILE ───────────────────────────────────────── */
@@ -610,6 +610,7 @@ a.red-link { color: var(--red); }
 
     @media (max-width: 600px) {
       .findings-grid { grid-template-columns: 1fr; }
+      .resources-grid { grid-template-columns: 1fr; }
     }
 
     /* ── INFO TOOLTIP ─────────────────────────────────── */
