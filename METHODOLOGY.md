@@ -117,7 +117,7 @@ Treat the counts as a minimum, not a complete tally.
 -   I'm not shipping the full scraped corpus. It's big and you don't need it to understand how any of this works.
 -   Credentials live in a `.env` file that's never committed. Use `.env.example` as the template.
 
-One real caveat: matching on names is imperfect. Common names can collide, which is why I lean on the rosters to disambiguate, but it still needs spot‑checking. And before you scrape any of these sites yourself, read their terms of service.
+One real caveat: matching on names is imperfect. Common names can collide, which is why I lean on the rosters to disambiguate, but it still needs spot‑checking.
 
 ## The fields in the cleaned data
 

@@ -359,11 +359,4 @@ all_props
 
 ------------------------------------------------------------------------
 
-# Reproducibility & disclosure
-
--   The loading and cleaning above runs on the files in `sample_data/` — no credentials, no network. Knit this `.Rmd` to reproduce it on the sample game.
--   The scrapers that produced these files live in `../scrapers/`. The standardization functions are source-agnostic — point the same pattern at any other book to extend the dataset.
--   This notebook stops at the cleaned table; the reporting questions it answered are listed in [`../METHODOLOGY.md`](../METHODOLOGY.md). The full corpus isn't shipped here.
--   **AI assistance, disclosed:** I used AI coding tools to help build and debug the Python scrapers (cookie banners, lazy-loaded content, the site-specific parsers each source needed). The reporting logic, the standardization rules, the analysis, and every editorial judgment here are mine, and the scraped output was spot-checked by hand against the live sites.
-
-See [`../METHODOLOGY.md`](../METHODOLOGY.md) for the prose companion to this notebook.
+See [`../METHODOLOGY.md`](../METHODOLOGY.md) for more on this project.
