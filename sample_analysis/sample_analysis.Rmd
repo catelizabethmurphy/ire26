@@ -50,8 +50,10 @@ library(hms)
 schedules <- read_csv("sample_data/raw_espn_schedule_duke_siena.csv", show_col_types = FALSE)
 
 scraped_rotowire_props <- read_csv("sample_data/raw_rotowire_public_data_duke_siena.csv", show_col_types = FALSE)
+head(scraped_rotowire_props)
 
 subscription_rotowire_props <- read_csv("sample_data/raw_rotowire_subscription_data_duke_siena.csv", show_col_types = FALSE)
+head(subscription_rotowire_props)
 ```
 
 # Standardization functions
