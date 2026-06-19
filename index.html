@@ -225,7 +225,7 @@
         <div class="step-body">
           <h3 class="step-title">Standardizing the messy fields</h3>
           <p>This is mostly a cleaning project. ESPN's spread data calls UConn <code>CONN</code>. RotoWire calls them <code>Connecticut</code>. The bracket says <code>UConn</code>. One book lists a market as <code>Reb+Ast</code>, another as <code>Rebounds + Assists</code>. A player shows up as <code>A.J. Dybantsa</code> in one place and <code>AJ Dybantsa</code> in another. Until all of that agrees, nothing lines up and nothing joins.</p>
-          <p class="step-p">So before combining anything, I run every source through the same cleanup, standardizing the handful of fields that have to match: team names, player names and the bet type (or "market" — points, rebounds, points + assists, and so on). I also tag each operator by type — a regulated sportsbook or a daily-fantasy app — since that split turns out to be central to the reporting. The demo notebook shows exactly how; the point here is that the same player, team or bet ends up written one way everywhere, so it can line up across sources.</p>
+          <p class="step-p">So before combining anything, I run every source through the same cleanup, standardizing the handful of fields that have to match: team names, player names, bet type (points, rebounds, points + assists, and so on). I also tag each operator by type — a regulated sportsbook or a daily-fantasy app — since that split turns out to be central to the reporting. The demo notebook shows exactly how; the point here is that the same player, team or bet ends up written one way everywhere, so it can line up across sources.</p>
         </div>
       </div>
 
@@ -234,7 +234,6 @@
         <div class="step-body">
           <h3 class="step-title">Building the join key</h3>
           <p>The goal is a single tidy table where one row is one prop line from one operator. To get there, every prop has to be tied to a specific game — but sources don't agree on how to name a matchup: home/away order flips, abbreviations differ. So I build one consistent key for each game and join every source on it. Once a prop knows its game, it picks up that game's seeds, region, round and spread from the ESPN schedule.</p>
-          <p class="step-p">RotoWire already tells me each player's team and opponent, so its rows land in a game on their own. But the moment you add a source that gives only a name and a bet with no team — DraftKings and BettingPros both do — you need a roster to look the player up first. A game is keyed on its two teams, so a name with no team can't be placed without it.</p>
         </div>
       </div>
 
@@ -427,10 +426,10 @@
           <a class="resource-link" href="https://github.com/catelizabethmurphy/ire26" target="_blank" rel="noopener">View on GitHub</a>
         </div>
         <div class="resource-card">
-          <div class="resource-type">Document</div>
-          <div class="resource-title">Methodology</div>
-          <p class="resource-desc">Every step from scraping to cleaning to classification, with honest notes on what the dataset undercounts.</p>
-          <a class="resource-link" href="https://github.com/catelizabethmurphy/ire26/blob/main/METHODOLOGY.md" target="_blank" rel="noopener">Read the methodology</a>
+          <div class="resource-type">Demo</div>
+          <div class="resource-title">Sample analysis notebook</div>
+          <p class="resource-desc">The loading-and-cleaning pipeline, fully rendered — every step from the raw RotoWire and ESPN files to one clean table, with output. Nothing to install.</p>
+          <a class="resource-link" href="https://catelizabethmurphy.github.io/ire26/sample_analysis/" target="_blank" rel="noopener">Open the notebook</a>
         </div>
         <div class="resource-card">
           <div class="resource-type">About &amp; contact</div>
