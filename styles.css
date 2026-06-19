@@ -124,7 +124,7 @@
 
     .hero-eyebrow {
       font-family: 'PT Sans Caption', sans-serif;
-      font-size: 0.75rem;
+      font-size: 0.85rem;
       letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--red);
@@ -141,7 +141,7 @@
     }
 
     .hero-deck {
-      font-size: 1.05rem;
+      font-size: 1.1rem;
       color: rgba(255,255,255,0.82);
       max-width: 680px;
       line-height: 1.7;
@@ -150,7 +150,7 @@
 
     .hero-meta {
       font-family: 'PT Sans Caption', sans-serif;
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       letter-spacing: 0.04em;
       color: rgba(255,255,255,0.55);
     }
@@ -165,7 +165,7 @@
 
     .section-label {
       font-family: 'PT Sans Caption', sans-serif;
-      font-size: 0.7rem;
+      font-size: 0.95rem;
       font-weight: 700;
       letter-spacing: 0.16em;
       text-transform: uppercase;
@@ -176,7 +176,7 @@
     .section-title {
       font-family: 'PT Sans', sans-serif;
       font-weight: 700;
-      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-size: clamp(1.8rem, 3vw, 2rem);
       color: var(--black);
       margin-bottom: 1.5rem;
       line-height: 1.15;
@@ -294,7 +294,7 @@
 
     .resource-type {
       font-family: 'PT Sans Caption', sans-serif;
-      font-size: 0.7rem;
+      font-size: 0.8rem;
       font-weight: 700;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -428,7 +428,7 @@
     }
 
     .method-list li {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       color: var(--gray-text);
       line-height: 1.7;
     }
@@ -532,7 +532,7 @@
 .body-p {
   color: var(--gray-text);
   line-height: 1.8;
-  font-size: 1rem;
+  font-size: 1.25rem;
   margin-bottom: 1.25rem;
 }
 .body-p-last { margin-bottom: 2rem; }
