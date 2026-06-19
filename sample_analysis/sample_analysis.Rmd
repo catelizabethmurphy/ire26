@@ -18,6 +18,8 @@ output:
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
+[IRE 2026 resource page](https://catelizabethmurphy.github.io/ire26/) · [GitHub repo](https://github.com/catelizabethmurphy/ire26)
+
 # What this document is
 
 This is the **loading-and-cleaning pipeline** behind my March Madness player prop betting reporting. A player prop is a bet on one player's stat line — "Cameron Boozer over 22.5 points," for example. During the tournament, thousands of opportunities to risk money on individual college players were made available. None of that data is downloadable, though, so I scraped it; and every site describes the same players, teams, and bets differently, so most of the work is **reconciling** them into one tidy table where one row is one prop line from one operator.
