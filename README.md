@@ -11,7 +11,9 @@ archive. The sample game runs everything end‑to‑end.
 the notebook that goes step by step from raw scraped files to one clean,
 row‑per‑prop table: load the feeds, standardize the names, teams, and markets every
 site spells differently, and merge them on a shared key. It runs top to bottom on the
-sample game with no credentials or network. [`METHODOLOGY.md`](METHODOLOGY.md) is the
+sample game with no credentials or network. Prefer Python? The same pipeline is in
+[`sample_analysis/sample_analysis.ipynb`](sample_analysis/sample_analysis.ipynb) (pandas) —
+same steps, same output. [`METHODOLOGY.md`](METHODOLOGY.md) is the
 prose companion, and it also covers the parts of the broader project that aren't in
 this minimal repo — rosters, box scores, the legal‑eligibility analysis, and the
 harassment reporting.
@@ -50,8 +52,9 @@ Census data (the eligibility analysis). Those aren't in this minimal repo — se
 ```
 ire26/
 ├── sample_analysis/
-│   ├── sample_analysis.Rmd   start here: the loading + cleaning pipeline (R)
-│   └── sample_data/          one game (Duke vs. Siena): raw RotoWire + ESPN, plus the cleaned output
+│   ├── sample_analysis.Rmd    start here: the loading + cleaning pipeline (R)
+│   ├── sample_analysis.ipynb  the same pipeline in Python (pandas)
+│   └── sample_data/           one game (Duke vs. Siena): raw RotoWire + ESPN, plus the cleaned output
 ├── METHODOLOGY.md            prose companion to the notebook
 ├── scrapers/                 Python/Selenium scrapers: RotoWire public, RotoWire subscription, ESPN schedule
 ├── index.html, main.js, styles.css   the IRE session resource page
@@ -72,8 +75,8 @@ that walks through the one game I did include.
 
 ## Running it
 
-Analysis (R) — the main thing. Open `sample_analysis/sample_analysis.Rmd` in RStudio
-and knit it, or run:
+Analysis (R) — the hands-on part: what to do with the prop data once it's collected.
+Open `sample_analysis/sample_analysis.Rmd` in RStudio and knit it, or run:
 
 ```r
 install.packages(c("tidyverse", "janitor", "lubridate", "stringi", "rvest", "fs", "hms", "rmarkdown"))
@@ -84,7 +87,11 @@ As written it reads the sample game in `sample_analysis/sample_data/`, so it run
 end‑to‑end with no credentials and no network. `METHODOLOGY.md` explains the same
 pipeline in plain English.
 
-Scrapers (Python + Selenium), if you want to pull fresh data:
+Prefer Python? Open `sample_analysis/sample_analysis.ipynb` in Jupyter and **Run All**,
+or open it in [Google Colab](https://colab.research.google.com/github/catelizabethmurphy/ire26/blob/main/sample_analysis/sample_analysis.ipynb)
+(nothing to install) — it runs the same pipeline with pandas.
+
+Scraping is the collection step — how the raw data gets pulled in the first place, walked through in `METHODOLOGY.md`. To pull fresh data yourself (Python + Selenium):
 
 ```bash
 # install uv: https://github.com/astral-sh/uv

@@ -357,6 +357,18 @@ all_props <- bind_rows(subscription_rotowire_props, scraped_rotowire_props) |>
 all_props
 ```
 
+# Explore the results
+
+```{r}
+all_props |>
+  summarise(n_props = n_distinct(prop_id),
+            n_props_siena = n_distinct(prop_id[str_detect(player_team, "Siena")]),
+            n_props_duke = n_distinct(prop_id[str_detect(player_team, "Duke")]),
+            n_players = n_distinct(player_name),
+            n_markets = n_distinct(prop_market),
+            n_platforms = n_distinct(prop_platform))
+```
+
 ------------------------------------------------------------------------
 
 See [`../METHODOLOGY.md`](../METHODOLOGY.md) for more on this project.

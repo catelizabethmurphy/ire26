@@ -50,7 +50,7 @@
       <p class="hero-eyebrow">IRE 2026 · Hands-On Session</p>
       <h1>Why you should care about sports betting, even if you don't cover sports</h1>
       <p class="hero-deck">
-        During the 2026 NCAA tournament, we identified more than 21,000 opportunities to risk money on individual college athletes — most of them beyond the reach of state sports-betting law. This resource page walks through what a prop bet is and isn't, why prop betting data is hard to get, how we got it and what it shows.
+        During the 2026 NCAA tournament, we identified more than 21,000 opportunities to risk money on individual college athletes — most of them beyond the reach of state sports-betting law. This resource page walks through what a prop bet is and isn't, why prop betting data is hard to get, how to get it and what it shows. Follow along with the code in the public repo to explore sample data yourself, and use this code to build your own scrapers at home.
       </p>
       <p class="hero-meta">
         <span>Cat Murphy</span> · Shirley Povich Center for Sports Journalism &amp; Howard Center for Investigative Journalism, University of Maryland
@@ -160,20 +160,20 @@
         <div class="finding-desc">Unique opportunities to risk money on individual college athletes identified across sportsbooks and daily fantasy platforms during the 2026 men's NCAA tournament.</div>
       </div>
       <div class="finding-block">
-        <div class="finding-num">163</div>
-        <div class="finding-desc">Pick 'em props for every 100 offered by sportsbooks. The four major pick 'em DFS sites combined offered more prop-like opportunities than the top six sportsbooks combined.</div>
-      </div>
-      <div class="finding-block">
-        <div class="finding-num">50+</div>
-        <div class="finding-desc">College athletes who appeared on pick 'em sites but never appeared in the top sportsbooks — players who would not have been "bettable" under any regulated framework.</div>
-      </div>
-      <div class="finding-block">
         <div class="finding-num">38%</div>
         <div class="finding-desc">Share of those 21,000+ opportunities that fell under state restrictions — even though 70% of states with legal sports gambling restrict college player props.</div>
       </div>
       <div class="finding-block">
         <div class="finding-num">129M</div>
         <div class="finding-desc">Americans who cannot bet on individual college athletes through regulated sportsbooks but can still do so via DFS platforms, including 82 million in states with no legal sports betting at all.</div>
+      </div>
+      <div class="finding-block">
+        <div class="finding-num">163</div>
+        <div class="finding-desc">Pick 'em props for every 100 offered by sportsbooks. The four major pick 'em DFS sites combined offered more prop-like opportunities than the top six sportsbooks combined.</div>
+      </div>
+      <div class="finding-block">
+        <div class="finding-num">50+</div>
+        <div class="finding-desc">College athletes who appeared on pick 'em sites but never appeared in the top sportsbooks — players who would not have been "bettable" under any regulated framework.</div>
       </div>
       <div class="finding-block">
         <div class="finding-num">127%</div>
@@ -207,11 +207,7 @@
             <li><code>rotowire_public_data_scraper.py</code> — RotoWire's public props page, which aggregates lines across several sportsbooks.</li>
             <li><code>rotowire_subscription_data_downloader.py</code> — the paid feed. The only source that reaches DFS apps like PrizePicks, Underdog, Sleeper and Pick6 and the only scraper that logs in. Reads credentials from a <code>.env</code> file that's never committed.</li>
           </ul>
-          <p class="step-p">The full reporting ran the same kind of scraper against DraftKings, BettingPros, ESPN box scores and team rosters. Those scrapers are left out of the minimal demo; adding a source is just another script feeding the same standardization functions.</p>
-          <div class="step-tags">
-            <span class="tag">Python</span>
-            <span class="tag">Selenium</span>
-          </div>
+          <p class="step-p"><span class="tip-link" tabindex="0">I don't know how to build a scraper<span class="tip-box">You don't need to be an engineer — I'm not. AI coding assistants (Claude, ChatGPT, Copilot, Cursor) are good at this. Describe the site and the fields you want, paste in a sample of the page's HTML, and ask for a Python + Selenium script. Run it, paste any errors back, and keep iterating until it works — then spot-check the output against the live page. Start small: one page, a few fields, then build up.</span></span></p>
         </div>
       </div>
 
@@ -220,9 +216,7 @@
         <div class="step-body">
           <h3 class="step-title">Scraping on a schedule</h3>
           <p>I scraped several times a day because of how these markets behave. Books post props as they create them, on their own schedule and pull them when a game tips off — sometimes earlier. A prop I didn't catch before it came down was gone. Doing that by hand for three weeks wasn't realistic, so I automated it with GitHub Actions: scheduled workflows that spin up a fresh machine, run a scraper and commit the new data file back into the repo with a timestamp.</p>
-          <div class="step-tags">
-            <span class="tag">GitHub Actions</span>
-          </div>
+          <p class="step-p"><span class="tip-link" tabindex="0">What's GitHub Actions?<span class="tip-box">GitHub Actions runs your code on GitHub's servers — free for public repos, with no server to maintain. To schedule a scraper, add a workflow file under <code>.github/workflows/</code> with a <code>cron</code> schedule, then steps that install Python, Chrome and your dependencies, run the scraper, and commit the new data file back to the repo. Each run spins up a fresh machine, and a manual "Run workflow" button lets you trigger it any time.</span></span></p>
         </div>
       </div>
 
@@ -231,17 +225,7 @@
         <div class="step-body">
           <h3 class="step-title">Standardizing the messy fields</h3>
           <p>This is mostly a cleaning project. ESPN's spread data calls UConn <code>CONN</code>. RotoWire calls them <code>Connecticut</code>. The bracket says <code>UConn</code>. One book lists a market as <code>Reb+Ast</code>, another as <code>Rebounds + Assists</code>. A player shows up as <code>A.J. Dybantsa</code> in one place and <code>AJ Dybantsa</code> in another. Until all of that agrees, nothing lines up and nothing joins.</p>
-          <p class="step-p"><code>sample_analysis.Rmd</code> handles this with a set of small functions run over every source before any combining:</p>
-          <ul class="method-list">
-            <li><code>standardize_team_names()</code> and <code>match_school_abbreviations()</code> — map team variants and ESPN abbreviations to one canonical name. Explicit lists, not fuzzy matching, so every rule is something an editor can read and check.</li>
-            <li><code>standardize_player_names()</code> — strips suffixes like Jr. and III, removes accents and quoted nicknames and patches known cross-site mismatches by hand (Solomon Ball vs. Solo Ball, for example).</li>
-            <li><code>standardize_market_name()</code> — collapses every way books write a bet type into one vocabulary. <code>pts</code> becomes <code>points</code>, <code>3pt made</code> becomes <code>three_pointers_made</code>.</li>
-            <li><code>classify_platform_type()</code> — tags each operator as a sportsbook, DFS app, or other. The split between regulated sportsbooks and DFS apps is central to the reporting.</li>
-          </ul>
-          <div class="step-tags">
-            <span class="tag">R</span>
-            <span class="tag">tidyverse</span>
-          </div>
+          <p class="step-p">So before combining anything, I run every source through the same cleanup, standardizing the handful of fields that have to match: team names, player names and the bet type (or "market" — points, rebounds, points + assists, and so on). I also tag each operator by type — a regulated sportsbook or a daily-fantasy app — since that split turns out to be central to the reporting. The demo notebook shows exactly how; the point here is that the same player, team or bet ends up written one way everywhere, so it can line up across sources.</p>
         </div>
       </div>
 
@@ -249,18 +233,24 @@
         <div class="step-num">04</div>
         <div class="step-body">
           <h3 class="step-title">Building the join key</h3>
-          <p>The goal is a single tidy table where one row is one prop line from one operator. The key that ties a prop to a game is a sorted team pairing:</p>
-          <pre class="code-block">game = paste(pmin(team_a, team_b), "vs.", pmax(team_a, team_b))</pre>
-          <p class="step-p">Sorting the two teams alphabetically means <code>Duke @ Siena</code> and <code>Siena vs. Duke</code> both resolve to <code>Duke vs. Siena</code> no matter the home/away order or which scrape they came from. With that key in place, the props get joined to the ESPN schedule for seeds, region, round and the spread.</p>
-          <p class="step-p">RotoWire already tells me each player's team and opponent, so its rows drop into a game on their own. But the moment you add a source that gives only a name and a bet with no team — DraftKings and BettingPros, in the full project, both do exactly that — a roster lookup becomes essential. A game is keyed on its pair of teams, so a name with no team can't be placed without first looking up the team.</p>
+          <p>The goal is a single tidy table where one row is one prop line from one operator. To get there, every prop has to be tied to a specific game — but sources don't agree on how to name a matchup: home/away order flips, abbreviations differ. So I build one consistent key for each game and join every source on it. Once a prop knows its game, it picks up that game's seeds, region, round and spread from the ESPN schedule.</p>
+          <p class="step-p">RotoWire already tells me each player's team and opponent, so its rows land in a game on their own. But the moment you add a source that gives only a name and a bet with no team — DraftKings and BettingPros both do — you need a roster to look the player up first. A game is keyed on its two teams, so a name with no team can't be placed without it.</p>
+        </div>
+      </div>
+
+      <div class="method-step">
+        <div class="step-num">05</div>
+        <div class="step-body">
+          <h3 class="step-title">Merging into one table</h3>
+          <p>With everything standardized and keyed to a game, the feeds stack into one table. The catch: the same bet often shows up more than once — across both feeds, or across the dozens of times a day I scraped. So every bet gets a <code>prop_id</code>: a unique fingerprint built from the player, book, market, teams and date. Identical bets share an ID, so I can collapse them into a single row — while keeping a count of how many times it turned up and which sources saw it, so no line loses its paper trail.</p>
         </div>
       </div>
 
       <div class="method-step method-step-last">
-        <div class="step-num">05</div>
+        <div class="step-num">06</div>
         <div class="step-body">
-          <h3 class="step-title">Merging into one table</h3>
-          <p>RotoWire stores each sportsbook in its own column, so I pivot those into one row per book before combining. Then I dedupe on a <code>prop_id</code> built from player, book, market, seeds, teams and date. The same prop scraped from several runs collapses to one row, but I keep a count (<code>number_times_identified</code>) and source list (<code>data_source</code>) so every line is traceable to where it came from.</p>
+          <h3 class="step-title">Join with other data</h3>
+          <p>That clean, keyed table is a starting point, not the finish line. Because every prop carries its game, its teams and a player name, you can join it to almost anything else to ask new questions.</p>
         </div>
       </div>
 
@@ -274,7 +264,7 @@
       <h2 class="section-title">Try it yourself</h2>
 
       <p class="body-p">
-        Scraping is the collection step — that's covered up in <a href="#methodology" class="red-link">How we got there</a>. This is the other half: what to do with the prop data once you've got it. The whole loading-and-cleaning pipeline runs on the one-game sample that ships with the repo — no scraping, no credentials, no network — so you can turn a pile of mismatched files into one analyzable table in a couple of clicks. Everything is in <a href="https://github.com/catelizabethmurphy/ire26" target="_blank" rel="noopener" class="red-link">github.com/catelizabethmurphy/ire26</a>.
+        Scraping is the collection step — that's covered <a href="#methodology" class="red-link">up above</a>. This is the other half: what to do with the prop data once you've got it. The whole loading-and-cleaning pipeline runs on the one-game sample that ships with the repo — no scraping, no credentials, no network — so you can turn a pile of mismatched files into one analyzable table in a couple of clicks. Everything is in <a href="https://github.com/catelizabethmurphy/ire26" target="_blank" rel="noopener" class="red-link">github.com/catelizabethmurphy/ire26</a>. It comes two ways — an <strong>R</strong> notebook and a <strong>Python</strong> notebook, same steps and same result — so use whichever you're comfortable in.
       </p>
 
       <div class="method-step">
@@ -288,13 +278,22 @@
       <div class="method-step method-step-last">
         <div class="step-num">02</div>
         <div class="step-body">
-          <h3 class="step-title">Open it and click Knit</h3>
-          <p>This is the sample code. In RStudio, open <code>sample_analysis/sample_analysis.Rmd</code> and click the <strong>Knit</strong> button at the top of the editor. If RStudio shows a yellow bar offering to install missing packages, click <strong>Install</strong>.</p>
-          <p class="step-p">Knitting reads the raw files in <code>sample_analysis/sample_data/</code> and walks the standardization and merge end to end, building the one-row-per-prop table and rendering it as a web page — no credentials, no network.</p>
+          <h3 class="step-title">Open it and run it</h3>
+          <p>This is the sample code, in whichever language you prefer:</p>
+          <ul class="method-list">
+            <li><strong>R</strong> — open <code>sample_analysis/sample_analysis.Rmd</code> in RStudio and click <strong>Knit</strong>. If a yellow bar offers to install missing packages, click <strong>Install</strong>.</li>
+            <li><strong>Python</strong> — open <code>sample_analysis/sample_analysis.ipynb</code> in Jupyter and choose <strong>Run All</strong>.</li>
+          </ul>
+          <p class="step-p" style="padding-bottom: 10px;" >Either way it reads the raw RotoWire and ESPN files and walks the standardization and merge end to end, building the one-row-per-prop table. No credentials needed.</p>
+          <div style="background: var(--offwhite); border-left: 3px solid var(--red); padding: 1rem 1rem; border-radius: 2px;">
+            <p class="step-p" style="margin-top: 0;"><strong>Nothing installed? Run it in your browser — no setup, no download:</strong></p>
+            <ul class="method-list">
+              <li><strong>Python, one click:</strong> open the notebook in <a href="https://colab.research.google.com/github/catelizabethmurphy/ire26/blob/main/sample_analysis/sample_analysis.ipynb" target="_blank" rel="noopener" class="red-link">Google Colab</a>, then <strong>Runtime → Run all</strong>.</li>
+              <li><strong>R:</strong> open <a href="https://posit.cloud" target="_blank" rel="noopener" class="red-link">Posit Cloud</a> (free) → <strong>New Project from Git Repository</strong> with the repo link → open the <code>.Rmd</code> → <strong>Knit</strong>.</li>
+            </ul>
+          </div>
         </div>
       </div>
-
-      <p class="body-p" style="margin-top: 1.5rem;">That cleaned table is the whole point: once the data is standardized and merged, you can finally ask it questions. What the numbers add up to — the sheer volume on college players, the sportsbook-vs-DFS split, the legal gray area — is up in <a href="#findings" class="red-link">Findings</a>, and the methodology spells out the questions I took to the table.</p>
 
     </div>
   </section>
@@ -309,7 +308,7 @@
         <div class="step-num">01</div>
         <div class="step-body">
           <h3 class="step-title">A note on AI assistance</h3>
-          <p>I used AI coding tools to help build and debug the Python scrapers — wiring up the headless browser, dismissing cookie banners, handling lazy-loaded content and writing the site-specific parsers each source needed. That means you can too. But the reporting logic, the standardization rules, the analysis and every editorial judgment are mine and I spot-checked the scraped output by hand against the live sites.</p>
+          <p>I used AI coding tools to help build and debug the Python scrapers — wiring up the headless browser, dismissing cookie banners, handling lazy-loaded content and writing the site-specific parsers each source needed — and to help restructure the project repo into the demo you're looking at now. That means you can too. But the reporting logic, the standardization rules, the analysis and every editorial judgment are mine and I spot-checked the scraped output by hand against the live sites.</p>
         </div>
       </div>
 
